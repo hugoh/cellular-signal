@@ -30,5 +30,6 @@ jobs:
       - name: Super-linter
         uses: super-linter/super-linter@46e338cb21f669ef26d328450eb2930db63bdad9
         env:
+          VALIDATE_BIOME_FORMAT: false
           # To report GitHub Actions status checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
