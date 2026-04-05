@@ -26,23 +26,23 @@ go get github.com/hugoh/cellular-signal
 package main
 
 import (
-	"fmt"
+    "fmt"
 
-	"github.com/hugoh/cellular-signal"
+    "github.com/hugoh/cellular-signal"
 )
 
 func main() {
-	rater := signal.NewRater()
+    rater := signal.NewRater()
 
-	// Rate individual metrics
-	rsrpRating := rater.RateRSRP(-92)
-	fmt.Println(rater.Format(rsrpRating))
-	// Output: RSRP: -92 dBm (Good ★★★★☆)
+    // Rate individual metrics
+    rsrpRating := rater.RateRSRP(-92)
+    fmt.Println(rater.Format(rsrpRating))
+    // Output: RSRP: -92 dBm (Good ★★★★☆)
 
-	// Access rating details
-	fmt.Printf("Quality: %s\n", rsrpRating.Quality.String())
-	fmt.Printf("Metric: %s\n", rsrpRating.Metric)
-	fmt.Printf("Value: %d %s\n", rsrpRating.Value, rsrpRating.Metric.Unit())
+    // Access rating details
+    fmt.Printf("Quality: %s\n", rsrpRating.Quality.String())
+    fmt.Printf("Metric: %s\n", rsrpRating.Metric)
+    fmt.Printf("Value: %d %s\n", rsrpRating.Value, rsrpRating.Metric.Unit())
 }
 ```
 
@@ -56,12 +56,12 @@ rater := signal.NewRater()
 
 // Custom thresholds
 customThresholds := []signal.Threshold{
-	{MinValue: -80, MaxValue: 0, Quality: signal.QualityExcellent},
-	{MinValue: -100, MaxValue: -80, Quality: signal.QualityGood},
-	{MinValue: -200, MaxValue: -100, Quality: signal.QualityPoor},
+    {MinValue: -80, MaxValue: 0, Quality: signal.QualityExcellent},
+    {MinValue: -100, MaxValue: -80, Quality: signal.QualityGood},
+    {MinValue: -200, MaxValue: -100, Quality: signal.QualityPoor},
 }
 rater = signal.NewRaterWithThresholds(
-	signal.WithRSRPThresholds(customThresholds),
+    signal.WithRSRPThresholds(customThresholds),
 )
 ```
 
