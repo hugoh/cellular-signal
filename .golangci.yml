@@ -1,0 +1,28 @@
+version: "2"
+linters:
+  default: all
+  disable:
+    - depguard
+    - exhaustruct
+    - godox
+    - nlreturn
+    - noinlineerr
+    - paralleltest
+    - testpackage
+    - varnamelen
+    - wsl
+    - wsl_v5
+  settings:
+    errcheck:
+      check-blank: true
+    mnd:
+      ignored-files:
+        - thresholds.go
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
