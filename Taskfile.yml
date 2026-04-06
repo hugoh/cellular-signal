@@ -52,6 +52,7 @@ tasks:
     summary: Format the code
     cmds:
       - golangci-lint run --fix ./...
+      - prettier -w .
 
   tidy:
     summary: Tidy the module
