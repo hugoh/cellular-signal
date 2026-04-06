@@ -1,5 +1,5 @@
 [tools]
-go = "latest"
+go = "1.26.1"
 golangci-lint = "2.11.4"
 goreleaser = "latest"
 prettier = "latest"
