@@ -4,7 +4,7 @@ vars:
   COVEROUT: cover.out
   FUNCSOUT: funcs-{{.COVEROUT}}
   GOBIN: $(go env GOPATH)/bin
-  TEST_COVERAGE: 80
+  TEST_COVERAGE: 100
 
 tasks:
   lint:

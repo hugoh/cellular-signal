@@ -261,3 +261,116 @@ func TestNewRaterWithThresholds(t *testing.T) {
 		t.Errorf("RateRSRP(-90) with custom thresholds = %v, want %v", rating.Quality, QualityGood)
 	}
 }
+
+func TestWithRSRQThresholds(t *testing.T) {
+	customRSRQ := []Threshold{
+		{MinValue: -5, MaxValue: 20, Quality: QualityExcellent},
+		{MinValue: -15, MaxValue: -5, Quality: QualityGood},
+		{MinValue: -50, MaxValue: -15, Quality: QualityPoor},
+	}
+
+	rater := NewRaterWithThresholds(WithRSRQThresholds(customRSRQ))
+
+	rating := rater.RateRSRQ(-10)
+	if rating.Quality != QualityGood {
+		t.Errorf("RateRSRQ(-10) with custom thresholds = %v, want %v", rating.Quality, QualityGood)
+	}
+}
+
+func TestWithRSSIThresholds(t *testing.T) {
+	customRSSI := []Threshold{
+		{MinValue: -60, MaxValue: 0, Quality: QualityExcellent},
+		{MinValue: -80, MaxValue: -60, Quality: QualityGood},
+		{MinValue: -120, MaxValue: -80, Quality: QualityPoor},
+	}
+
+	rater := NewRaterWithThresholds(WithRSSIThresholds(customRSSI))
+
+	rating := rater.RateRSSI(-70)
+	if rating.Quality != QualityGood {
+		t.Errorf("RateRSSI(-70) with custom thresholds = %v, want %v", rating.Quality, QualityGood)
+	}
+}
+
+func TestWithSINRThresholds(t *testing.T) {
+	customSINR := []Threshold{
+		{MinValue: 15, MaxValue: 100, Quality: QualityExcellent},
+		{MinValue: 5, MaxValue: 15, Quality: QualityGood},
+		{MinValue: -100, MaxValue: 5, Quality: QualityPoor},
+	}
+
+	rater := NewRaterWithThresholds(WithSINRThresholds(customSINR))
+
+	rating := rater.RateSINR(10)
+	if rating.Quality != QualityGood {
+		t.Errorf("RateSINR(10) with custom thresholds = %v, want %v", rating.Quality, QualityGood)
+	}
+}
+
+func TestRateValueEdgeCases(t *testing.T) {
+	rater := NewRater()
+
+	// Test value above highest threshold (edge case)
+	// RSRP: excellent is >= -89, test value above
+	rsrpAbove := rater.RateRSRP(-50)
+	if rsrpAbove.Quality != QualityExcellent {
+		t.Errorf("RateRSRP(-50) = %v, want %v", rsrpAbove.Quality, QualityExcellent)
+	}
+
+	// Test value below lowest threshold (edge case)
+	// RSRP: no signal is < -124
+	rsrpBelow := rater.RateRSRP(-150)
+	if rsrpBelow.Quality != QualityNone {
+		t.Errorf("RateRSRP(-150) = %v, want %v", rsrpBelow.Quality, QualityNone)
+	}
+
+	// Test SINR above highest threshold
+	sinrAbove := rater.RateSINR(50)
+	if sinrAbove.Quality != QualityExcellent {
+		t.Errorf("RateSINR(50) = %v, want %v", sinrAbove.Quality, QualityExcellent)
+	}
+
+	// Test SINR below lowest threshold
+	sinrBelow := rater.RateSINR(-50)
+	if sinrBelow.Quality != QualityPoor {
+		t.Errorf("RateSINR(-50) = %v, want %v", sinrBelow.Quality, QualityPoor)
+	}
+
+	// Test RSRQ value above MaxValue boundary
+	// RSRQ excellent MaxValue is 20, test with value above
+	rsrqAbove := rater.RateRSRQ(10)
+	if rsrqAbove.Quality != QualityExcellent {
+		t.Errorf("RateRSRQ(10) = %v, want %v", rsrqAbove.Quality, QualityExcellent)
+	}
+}
+
+func TestRateValueWithGapThresholds(t *testing.T) {
+	// Create thresholds with a gap to test the fallback logic
+	gapThresholds := []Threshold{
+		{MinValue: -50, MaxValue: -40, Quality: QualityExcellent},
+		{MinValue: -70, MaxValue: -60, Quality: QualityGood},
+		{MinValue: -100, MaxValue: -90, Quality: QualityPoor},
+	}
+
+	rater := NewRaterWithThresholds(WithRSRPThresholds(gapThresholds))
+
+	// Test value above all MaxValues
+	// This triggers: if value >= thresholds[0].MaxValue
+	rating := rater.RateRSRP(-35)
+	if rating.Quality != QualityExcellent {
+		t.Errorf("RateRSRP(-35) with gap thresholds = %v, want %v", rating.Quality, QualityExcellent)
+	}
+
+	// Test value in the gap between Excellent and Good (-50 to -60)
+	// Falls through loop, below MaxValue, returns last threshold
+	rating2 := rater.RateRSRP(-55)
+	if rating2.Quality != QualityPoor {
+		t.Errorf("RateRSRP(-55) with gap thresholds = %v, want %v", rating2.Quality, QualityPoor)
+	}
+
+	// Test value below all thresholds
+	rating3 := rater.RateRSRP(-110)
+	if rating3.Quality != QualityPoor {
+		t.Errorf("RateRSRP(-110) with gap thresholds = %v, want %v", rating3.Quality, QualityPoor)
+	}
+}
