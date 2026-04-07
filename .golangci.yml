@@ -2,27 +2,20 @@ version: "2"
 linters:
   default: all
   disable:
-    - nlreturn
     - paralleltest
-    - testpackage
     - wsl
-    - wsl_v5
   exclusions:
     rules:
       - path: signal_test.go
         linters:
+          - depguard
           - varnamelen
-  settings:
-    errcheck:
-      check-blank: true
-    mnd:
-      ignored-files:
-        - thresholds.go
+      - path: thresholds.go
+        linters:
+          - mnd
 formatters:
   enable:
     - gci
     - gofumpt
-    - golines
     - goimports
-  exclusions:
-    generated: lax
+    - golines

@@ -156,6 +156,7 @@ func NewRaterWithThresholds(opts ...Option) *Rater {
 	for _, opt := range opts {
 		opt(r)
 	}
+
 	return r
 }
 
@@ -212,8 +213,10 @@ func rateValue(value float64, thresholds []Threshold) Quality {
 			return t.Quality
 		}
 	}
+
 	if value >= thresholds[0].MaxValue {
 		return thresholds[0].Quality
 	}
+
 	return thresholds[len(thresholds)-1].Quality
 }

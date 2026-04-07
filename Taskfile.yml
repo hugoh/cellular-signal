@@ -2,17 +2,12 @@ version: "3"
 
 vars:
   COVEROUT: cover.out
-  FUNCSOUT: funcs-{{.COVEROUT}}
   GOBIN: $(go env GOPATH)/bin
   TEST_COVERAGE: 100
 
 tasks:
   lint:
     summary: Lint code
-    sources: &SOURCES
-      - "**/*.go"
-      - "**/*.md"
-      - "**/*.yml"
     cmds:
       - go mod tidy -diff
       - golangci-lint run ./...
@@ -22,22 +17,21 @@ tasks:
     summary: Run tests
     cmd: go test ./... -race -coverprofile={{.COVEROUT}} -covermode=atomic
 
-  coverfunc:
-    summary: Generate test coverage function
-    deps: [test]
-    cmd: go tool cover -func={{.COVEROUT}} > {{.FUNCSOUT}}
-    sources:
-      - "{{.COVEROUT}}"
+  coverage:
+    summary: Generate test coverage
+    cmds:
+      - task: test
+        vars:
+          CLI_ARGS: -coverprofile={{.COVEROUT}} -covermode=atomic -coverpkg=./...
     generates:
-      - "{{.FUNCSOUT}}"
+      - "{{.COVEROUT}}"
 
   covercheck:
     summary: Check test coverage
-    deps: [coverfunc]
-    cmds:
-      - cat {{.FUNCSOUT}}
-      - |
-        awk '/total/{gsub(/%/,"",$3); print "Coverage: " $3 "% (Minimum: {{.TEST_COVERAGE}}%)"; if ($3 < {{.TEST_COVERAGE}}) exit 1}' < "{{.FUNCSOUT}}"
+    deps: [coverage]
+    cmd: |
+      go tool cover -func={{.COVEROUT}} | \
+      awk '/total/{gsub(/%/,"",$3); print "Coverage: " $3 "% (Minimum: {{.TEST_COVERAGE}}%)"; if ($3 < {{.TEST_COVERAGE}}) exit 1}'
 
   ci:
     summary: Run CI checks (lint, test, coverage)
@@ -47,7 +41,7 @@ tasks:
     summary: Clean the project
     cmds:
       - go clean
-      - rm -f {{.COVEROUT}} {{.FUNCSOUT}}
+      - rm -f {{.COVEROUT}}
 
   fixlint:
     summary: Fix lint issues
@@ -55,7 +49,6 @@ tasks:
 
   fmt:
     summary: Format the code
-    sources: *SOURCES
     cmds:
       - golangci-lint fmt ./...
       - prettier --write .
