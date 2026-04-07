@@ -2,16 +2,16 @@ version: "2"
 linters:
   default: all
   disable:
-    - depguard
-    - exhaustruct
-    - godox
     - nlreturn
-    - noinlineerr
     - paralleltest
     - testpackage
-    - varnamelen
     - wsl
     - wsl_v5
+  exclusions:
+    rules:
+      - path: signal_test.go
+        linters:
+          - varnamelen
   settings:
     errcheck:
       check-blank: true
@@ -21,8 +21,8 @@ linters:
 formatters:
   enable:
     - gci
-    - gofmt
     - gofumpt
+    - golines
     - goimports
   exclusions:
     generated: lax
