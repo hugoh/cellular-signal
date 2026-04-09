@@ -199,7 +199,14 @@ func (r *Rater) RateSINR(sinr int) Rating {
 	}
 }
 
-// Format returns a formatted string for the rating using format verbs.
+// Format returns a formatted string using the default format.
+// The default format is "%m: %v %u (%q %s)". See FormatWith for
+// details on available format verbs.
+func (r *Rater) Format(rating Rating) string {
+	return r.FormatWith("%m: %v %u (%q %s)", rating)
+}
+
+// FormatWith returns a formatted string for the rating using a custom format.
 // Supported verbs:
 //
 //	%m - metric (e.g., RSRP, RSRQ, RSSI, SINR)
@@ -207,13 +214,7 @@ func (r *Rater) RateSINR(sinr int) Rating {
 //	%u - unit (e.g., dBm, dB)
 //	%q - quality (e.g., Excellent, Good, Fair, Poor, No Signal)
 //	%s - stars (visual representation like ★★★★★)
-//
-// The default format is "%m: %v %u (%q %s)".
-func (r *Rater) Format(rating Rating) string {
-	return r.FormatWith("%m: %v %u (%q %s)", rating)
-}
-
-// FormatWith returns a formatted string for the rating using a custom format.
+//	%% - literal percent sign
 func (r *Rater) FormatWith(format string, rating Rating) string {
 	var builder strings.Builder
 	builder.Grow(len(format) * formatGrowthFactor)
