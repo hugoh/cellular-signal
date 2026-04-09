@@ -2,7 +2,10 @@
 // for LTE/4G/5G metrics based on industry standards.
 package signal
 
-import "fmt"
+import (
+	"strconv"
+	"strings"
+)
 
 // Quality represents a signal quality rating level.
 type Quality int
@@ -196,15 +199,58 @@ func (r *Rater) RateSINR(sinr int) Rating {
 	}
 }
 
-// Format returns a formatted string for the rating.
+// Format returns a formatted string for the rating using format verbs.
+// Supported verbs:
+//
+//	%m - metric (e.g., RSRP, RSRQ, RSSI, SINR)
+//	%v - value (numeric signal value)
+//	%u - unit (e.g., dBm, dB)
+//	%q - quality (e.g., Excellent, Good, Fair, Poor, No Signal)
+//	%s - stars (visual representation like ★★★★★)
+//
+// The default format is "%m: %v %u (%q %s)".
 func (r *Rater) Format(rating Rating) string {
-	return fmt.Sprintf("%s: %d %s (%s %s)",
-		rating.Metric,
-		rating.Value,
-		rating.Metric.Unit(),
-		rating.Quality,
-		rating.Quality.Stars(),
-	)
+	return r.FormatWith("%m: %v %u (%q %s)", rating)
+}
+
+// FormatWith returns a formatted string for the rating using a custom format.
+func (r *Rater) FormatWith(format string, rating Rating) string {
+	var builder strings.Builder
+	builder.Grow(len(format) * formatGrowthFactor)
+
+	for idx := 0; idx < len(format); idx++ {
+		if format[idx] == '%' && idx+1 < len(format) {
+			appendVerb(&builder, format[idx+1], rating)
+
+			if format[idx+1] != '%' {
+				idx++
+			}
+		} else {
+			builder.WriteByte(format[idx])
+		}
+	}
+
+	return builder.String()
+}
+
+func appendVerb(builder *strings.Builder, verb byte, rating Rating) {
+	switch verb {
+	case 'm':
+		builder.WriteString(rating.Metric.String())
+	case 'v':
+		builder.WriteString(strconv.Itoa(rating.Value))
+	case 'u':
+		builder.WriteString(rating.Metric.Unit())
+	case 'q':
+		builder.WriteString(rating.Quality.String())
+	case 's':
+		builder.WriteString(rating.Quality.Stars())
+	case '%':
+		builder.WriteByte('%')
+	default:
+		builder.WriteByte('%')
+		builder.WriteByte(verb)
+	}
 }
 
 func rateValue(value float64, thresholds []Threshold) Quality {
@@ -220,3 +266,5 @@ func rateValue(value float64, thresholds []Threshold) Quality {
 
 	return thresholds[len(thresholds)-1].Quality
 }
+
+const formatGrowthFactor = 2

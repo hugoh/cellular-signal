@@ -22,7 +22,11 @@ depends = ["test"]
 [tasks.covercheck]
 description = "Check test coverage"
 depends = ["coverage"]
-run = "go tool cover -func=${COVEROUT} | awk -v min=${TEST_COVERAGE} '/total/{gsub(/%/,\"\",$3); print \"Coverage: \"$3\"% (Minimum: \"min\"%)\"; exit ($3<min)?1:0}'"
+run = """
+  cov=$(go tool cover -func=${COVEROUT} | awk '/total/{gsub(/%/,"",$3); print $3}')
+  echo "Coverage: ${cov}% (Minimum: ${TEST_COVERAGE}%)"
+  awk "BEGIN{exit ($cov < $TEST_COVERAGE)}"
+"""
 
 [tasks.ci]
 description = "Run CI checks (lint, test, coverage)"

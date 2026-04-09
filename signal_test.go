@@ -434,3 +434,48 @@ func TestRateValueWithGapThresholds(t *testing.T) {
 		)
 	}
 }
+
+func TestFormatWithUnknownVerb(t *testing.T) {
+	rater := signal.NewRater()
+	rating := rater.RateRSRP(-92)
+
+	tests := []struct {
+		name     string
+		format   string
+		expected string
+	}{
+		{
+			name:     "unknown verb 'x'",
+			format:   "Signal: %x",
+			expected: "Signal: %x",
+		},
+		{
+			name:     "unknown verb 'd'",
+			format:   "%d dBm",
+			expected: "%d dBm",
+		},
+		{
+			name:     "mixed known and unknown verbs",
+			format:   "%m: %x %v",
+			expected: "RSRP: %x -92",
+		},
+		{
+			name:     "literal percent",
+			format:   "100%% signal",
+			expected: "100%% signal",
+		},
+		{
+			name:     "trailing percent",
+			format:   "signal %",
+			expected: "signal %",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := rater.FormatWith(tt.format, rating); got != tt.expected {
+				t.Errorf("FormatWith(%q) = %q, want %q", tt.format, got, tt.expected)
+			}
+		})
+	}
+}
