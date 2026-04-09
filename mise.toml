@@ -2,4 +2,44 @@
 go = "1.26.1"
 golangci-lint = "2.11.4"
 prettier = "3.8.1"
-task = "3.44.1"
+
+[env]
+COVEROUT = "cover.out"
+TEST_COVERAGE = "100"
+
+[tasks.lint]
+description = "Lint code"
+run = ["go mod tidy -diff", "golangci-lint run ./...", "prettier --check ."]
+
+[tasks.test]
+description = "Run tests"
+run = "go test ./... -race -coverprofile=${COVEROUT} -covermode=atomic"
+
+[tasks.coverage]
+description = "Generate test coverage"
+depends = ["test"]
+
+[tasks.covercheck]
+description = "Check test coverage"
+depends = ["coverage"]
+run = "go tool cover -func=${COVEROUT} | awk -v min=${TEST_COVERAGE} '/total/{gsub(/%/,\"\",$3); print \"Coverage: \"$3\"% (Minimum: \"min\"%)\"; exit ($3<min)?1:0}'"
+
+[tasks.ci]
+description = "Run CI checks (lint, test, coverage)"
+depends = ["lint", "covercheck"]
+
+[tasks.clean]
+description = "Clean the project"
+run = ["go clean", "rm -f ${COVEROUT}"]
+
+[tasks.fix]
+description = "Fix lint issues"
+run = "golangci-lint run --fix ./..."
+
+[tasks.fmt]
+description = "Format the code"
+run = ["golangci-lint fmt ./...", "prettier --write ."]
+
+[tasks.tidy]
+description = "Tidy the module"
+run = "go mod tidy -v"

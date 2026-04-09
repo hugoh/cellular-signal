@@ -130,19 +130,19 @@ This library uses industry-standard thresholds from:
 
 ### Prerequisites
 
-- [Task](https://taskfile.dev/) (task runner)
+- [mise](https://mise.jdx.dev/) (task runner and tool manager)
 
 ### Running Tests
 
 ```bash
 # Run all tests
-task test
+mise run test
 
 # Run CI checks (lint + test + coverage)
-task ci
+mise run ci
 
 # Check coverage
-task covercheck
+mise run covercheck
 ```
 
 ## Documentation

@@ -21,7 +21,7 @@ jobs:
       - &setup-mise
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151
       - name: Lint
-        run: task lint
+        run: mise run lint
 
   test:
     runs-on: ubuntu-latest
@@ -32,9 +32,9 @@ jobs:
       - *checkout
       - *setup-mise
       - name: Test
-        run: task test
+        run: mise run test
       - name: Coverage
-        run: task covercheck
+        run: mise run covercheck
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2
         with:
@@ -58,7 +58,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - *checkout
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
       - uses: go-semantic-release/action@2e9dc4247a6004f8377781bef4cb9dad273a741f
         with:
           allow-initial-development-versions: true
