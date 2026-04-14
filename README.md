@@ -105,7 +105,22 @@ quality.Stars()   // Star representation (★★★★★, ★★★★☆, etc.
 rating := rater.RateRSRP(-92)
 formatted := rater.Format(rating)
 // Output: "RSRP: -92 dBm (Good ★★★★☆)"
+
+// Custom format with FormatWith
+custom := rater.FormatWith("%m=%v%u %s", rating)
+// Output: "RSRP=-92dBm ★★★★☆"
 ```
+
+#### Format Verbs
+
+| Verb | Description | Example |
+| ---- | ----------- | ------- |
+| `%m` | Metric name | `RSRP`  |
+| `%v` | Value       | `-92`   |
+| `%u` | Unit        | `dBm`   |
+| `%q` | Quality     | `Good`  |
+| `%s` | Stars       | `★★★★☆` |
+| `%%` | Literal `%` | `%`     |
 
 ## Threshold References
 
