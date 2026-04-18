@@ -498,7 +498,7 @@ func TestFormatWithUnknownVerb(t *testing.T) {
 func TestRateValueWithEmptyThresholds(t *testing.T) {
 	rater := signal.NewRater()
 
-	emptyThresholds := []signal.Threshold{}
+	var emptyThresholds []signal.Threshold
 	if len(emptyThresholds) == 0 {
 		t.Log("Empty thresholds would return QualityNone via guard clause")
 	}
@@ -510,7 +510,7 @@ func TestRateValueWithEmptyThresholds(t *testing.T) {
 }
 
 func TestNewRaterWithThresholdsEmptyReturnsError(t *testing.T) {
-	emptyRSRP := []signal.Threshold{}
+	var emptyRSRP []signal.Threshold
 
 	_, err := signal.NewRaterWithThresholds(signal.WithRSRPThresholds(emptyRSRP))
 	if err == nil {
@@ -526,7 +526,7 @@ func TestNewRaterWithThresholdsNilReturnsError(t *testing.T) {
 }
 
 func TestNewRaterWithThresholdsEmptyRSSI(t *testing.T) {
-	emptyRSSI := []signal.Threshold{}
+	var emptyRSSI []signal.Threshold
 
 	_, err := signal.NewRaterWithThresholds(signal.WithRSSIThresholds(emptyRSSI))
 	if err == nil {
@@ -542,7 +542,7 @@ func TestNewRaterWithThresholdsNilRSSI(t *testing.T) {
 }
 
 func TestNewRaterWithThresholdsEmptySINR(t *testing.T) {
-	emptySINR := []signal.Threshold{}
+	var emptySINR []signal.Threshold
 
 	_, err := signal.NewRaterWithThresholds(signal.WithSINRThresholds(emptySINR))
 	if err == nil {
