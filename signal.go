@@ -245,7 +245,7 @@ func (r *Rater) Format(rating Rating) string {
 //	%q - quality (e.g., Excellent, Good, Fair, Poor, No Signal)
 //	%s - stars (visual representation like ★★★★★)
 //	%% - literal percent sign
-func (r *Rater) FormatWith(format string, rating Rating) string {
+func (*Rater) FormatWith(format string, rating Rating) string {
 	var builder strings.Builder
 	builder.Grow(len(format) * formatGrowthFactor)
 
