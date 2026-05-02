@@ -6,6 +6,23 @@ import (
 	signal "github.com/hugoh/cellular-signal"
 )
 
+const (
+	testExcellentSignal   = "excellent signal"
+	testExcellentBoundary = "excellent boundary"
+	testGoodSignalUpper   = "good signal upper"
+	testGoodSignalMiddle  = "good signal middle"
+	testGoodSignalLower   = "good signal lower"
+	testFairSignalUpper   = "fair signal upper"
+	testFairSignalMiddle  = "fair signal middle"
+	testFairSignalLower   = "fair signal lower"
+	testVeryPoorSignal    = "very poor signal"
+	testPoorSignal        = "poor signal"
+	testPoorSignalUpper   = "poor signal upper"
+	testPoorSignalMiddle  = "poor signal middle"
+	testPoorSignalLower   = "poor signal lower"
+	testNoSignal          = "no signal"
+)
+
 func TestQualityString(t *testing.T) {
 	tests := []struct {
 		quality  signal.Quality
@@ -79,19 +96,19 @@ func TestRateRSRP(t *testing.T) {
 		rsrp     int
 		expected signal.Quality
 	}{
-		{"excellent signal", -80, signal.QualityExcellent},
-		{"excellent boundary", -89, signal.QualityExcellent},
-		{"good signal upper", -90, signal.QualityGood},
-		{"good signal middle", -95, signal.QualityGood},
-		{"good signal lower", -104, signal.QualityGood},
-		{"fair signal upper", -105, signal.QualityFair},
-		{"fair signal middle", -110, signal.QualityFair},
-		{"fair signal lower", -114, signal.QualityFair},
-		{"poor signal upper", -115, signal.QualityPoor},
-		{"poor signal middle", -120, signal.QualityPoor},
-		{"poor signal lower", -124, signal.QualityPoor},
-		{"no signal", -130, signal.QualityNone},
-		{"very poor signal", -140, signal.QualityNone},
+		{testExcellentSignal, -80, signal.QualityExcellent},
+		{testExcellentBoundary, -89, signal.QualityExcellent},
+		{testGoodSignalUpper, -90, signal.QualityGood},
+		{testGoodSignalMiddle, -95, signal.QualityGood},
+		{testGoodSignalLower, -104, signal.QualityGood},
+		{testFairSignalUpper, -105, signal.QualityFair},
+		{testFairSignalMiddle, -110, signal.QualityFair},
+		{testFairSignalLower, -114, signal.QualityFair},
+		{testPoorSignalUpper, -115, signal.QualityPoor},
+		{testPoorSignalMiddle, -120, signal.QualityPoor},
+		{testPoorSignalLower, -124, signal.QualityPoor},
+		{testNoSignal, -130, signal.QualityNone},
+		{testVeryPoorSignal, -140, signal.QualityNone},
 	}
 
 	for _, tt := range tests {
@@ -125,16 +142,16 @@ func TestRateRSRQ(t *testing.T) {
 		rsrq     int
 		expected signal.Quality
 	}{
-		{"excellent signal", -5, signal.QualityExcellent},
-		{"excellent boundary", -9, signal.QualityExcellent},
-		{"good signal upper", -10, signal.QualityGood},
-		{"good signal middle", -12, signal.QualityGood},
-		{"good signal lower", -14, signal.QualityGood},
-		{"fair signal upper", -15, signal.QualityFair},
-		{"fair signal middle", -17, signal.QualityFair},
-		{"fair signal lower", -19, signal.QualityFair},
-		{"poor signal", -20, signal.QualityPoor},
-		{"very poor signal", -30, signal.QualityPoor},
+		{testExcellentSignal, -5, signal.QualityExcellent},
+		{testExcellentBoundary, -9, signal.QualityExcellent},
+		{testGoodSignalUpper, -10, signal.QualityGood},
+		{testGoodSignalMiddle, -12, signal.QualityGood},
+		{testGoodSignalLower, -14, signal.QualityGood},
+		{testFairSignalUpper, -15, signal.QualityFair},
+		{testFairSignalMiddle, -17, signal.QualityFair},
+		{testFairSignalLower, -19, signal.QualityFair},
+		{testPoorSignal, -20, signal.QualityPoor},
+		{testVeryPoorSignal, -30, signal.QualityPoor},
 	}
 
 	for _, tt := range tests {
@@ -168,15 +185,15 @@ func TestRateRSSI(t *testing.T) {
 		rssi     int
 		expected signal.Quality
 	}{
-		{"excellent signal", -50, signal.QualityExcellent},
-		{"excellent boundary", -65, signal.QualityExcellent},
-		{"good signal upper", -70, signal.QualityGood},
-		{"good signal middle", -72, signal.QualityGood},
-		{"good signal lower", -75, signal.QualityGood},
-		{"fair signal upper", -80, signal.QualityFair},
-		{"fair signal lower", -85, signal.QualityFair},
-		{"poor signal", -90, signal.QualityPoor},
-		{"very poor signal", -100, signal.QualityPoor},
+		{testExcellentSignal, -50, signal.QualityExcellent},
+		{testExcellentBoundary, -65, signal.QualityExcellent},
+		{testGoodSignalUpper, -70, signal.QualityGood},
+		{testGoodSignalMiddle, -72, signal.QualityGood},
+		{testGoodSignalLower, -75, signal.QualityGood},
+		{testFairSignalUpper, -80, signal.QualityFair},
+		{testFairSignalLower, -85, signal.QualityFair},
+		{testPoorSignal, -90, signal.QualityPoor},
+		{testVeryPoorSignal, -100, signal.QualityPoor},
 	}
 
 	for _, tt := range tests {
@@ -210,16 +227,16 @@ func TestRateSINR(t *testing.T) {
 		sinr     int
 		expected signal.Quality
 	}{
-		{"excellent signal", 20, signal.QualityExcellent},
-		{"excellent boundary", 13, signal.QualityExcellent},
-		{"good signal upper", 10, signal.QualityGood},
-		{"good signal middle", 8, signal.QualityGood},
-		{"good signal lower", 6, signal.QualityGood},
-		{"fair signal upper", 5, signal.QualityFair},
-		{"fair signal middle", 3, signal.QualityFair},
-		{"fair signal lower", 0, signal.QualityFair},
-		{"poor signal", -5, signal.QualityPoor},
-		{"very poor signal", -20, signal.QualityPoor},
+		{testExcellentSignal, 20, signal.QualityExcellent},
+		{testExcellentBoundary, 13, signal.QualityExcellent},
+		{testGoodSignalUpper, 10, signal.QualityGood},
+		{testGoodSignalMiddle, 8, signal.QualityGood},
+		{testGoodSignalLower, 6, signal.QualityGood},
+		{testFairSignalUpper, 5, signal.QualityFair},
+		{testFairSignalMiddle, 3, signal.QualityFair},
+		{testFairSignalLower, 0, signal.QualityFair},
+		{testPoorSignal, -5, signal.QualityPoor},
+		{testVeryPoorSignal, -20, signal.QualityPoor},
 	}
 
 	for _, tt := range tests {
