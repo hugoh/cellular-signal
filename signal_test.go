@@ -494,7 +494,12 @@ func TestFormatWithUnknownVerb(t *testing.T) {
 		{
 			name:     "literal percent",
 			format:   "100%% signal",
-			expected: "100%% signal",
+			expected: "100% signal",
+		},
+		{
+			name:     "literal percent before verb",
+			format:   "%%m is %m",
+			expected: "%m is RSRP",
 		},
 		{
 			name:     "trailing percent",

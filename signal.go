@@ -252,10 +252,7 @@ func (*Rater) FormatWith(format string, rating Rating) string {
 	for idx := 0; idx < len(format); idx++ {
 		if format[idx] == '%' && idx+1 < len(format) {
 			appendVerb(&builder, format[idx+1], rating)
-
-			if format[idx+1] != '%' {
-				idx++
-			}
+			idx++
 		} else {
 			builder.WriteByte(format[idx])
 		}
