@@ -5,12 +5,18 @@ package signal
 import (
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
 	"strconv"
 	"strings"
 )
 
 // ErrEmptyThresholds is returned when threshold slices are empty.
 var ErrEmptyThresholds = errors.New("thresholds must not be empty")
+
+// ErrUnsortedThresholds is returned when thresholds are not sorted by
+// strictly descending MinValue.
+var ErrUnsortedThresholds = errors.New("thresholds must be sorted by strictly descending MinValue")
 
 // Quality represents a signal quality rating level.
 type Quality int
@@ -78,11 +84,6 @@ const (
 	MetricSINR Metric = "SINR"
 )
 
-// String returns the metric name.
-func (m Metric) String() string {
-	return string(m)
-}
-
 // Unit returns the measurement unit for the metric.
 func (m Metric) Unit() string {
 	switch m {
@@ -98,88 +99,140 @@ func (m Metric) Unit() string {
 // Rating contains a signal quality rating with full context.
 type Rating struct {
 	Quality Quality
-	Value   int
+	Value   float64
 	Metric  Metric
 }
 
-// Threshold defines a quality boundary for a signal metric.
+// defaultFormat is the layout used by Rating.String.
+const defaultFormat = "%m: %v %u (%q %s)"
+
+// formatGrowthFactor sizes the format builder's initial allocation
+// relative to the layout length.
+const formatGrowthFactor = 2
+
+// String implements fmt.Stringer using the default format
+// "%m: %v %u (%q %s)". See Format for details on available verbs.
+func (r Rating) String() string {
+	return r.Format(defaultFormat)
+}
+
+// Format returns a formatted string for the rating using a custom format.
+// Supported verbs:
+//
+//	%m - metric (e.g., RSRP, RSRQ, RSSI, SINR)
+//	%v - value (numeric signal value)
+//	%u - unit (e.g., dBm, dB)
+//	%q - quality (e.g., Excellent, Good, Fair, Poor, No Signal)
+//	%s - stars (visual representation like ★★★★★)
+//	%% - literal percent sign
+func (r Rating) Format(format string) string {
+	var builder strings.Builder
+	builder.Grow(len(format) * formatGrowthFactor)
+
+	for idx := 0; idx < len(format); idx++ {
+		if format[idx] == '%' && idx+1 < len(format) {
+			r.appendVerb(&builder, format[idx+1])
+			idx++
+		} else {
+			builder.WriteByte(format[idx])
+		}
+	}
+
+	return builder.String()
+}
+
+func (r Rating) appendVerb(builder *strings.Builder, verb byte) {
+	switch verb {
+	case 'm':
+		builder.WriteString(string(r.Metric))
+	case 'v':
+		builder.WriteString(strconv.FormatFloat(r.Value, 'f', -1, 64))
+	case 'u':
+		builder.WriteString(r.Metric.Unit())
+	case 'q':
+		builder.WriteString(r.Quality.String())
+	case 's':
+		builder.WriteString(r.Quality.Stars())
+	case '%':
+		builder.WriteByte('%')
+	default:
+		builder.WriteByte('%')
+		builder.WriteByte(verb)
+	}
+}
+
+// Threshold defines the lower bound of a quality level for a signal
+// metric: values greater than or equal to MinValue (and below the
+// next-better threshold's MinValue) get Quality. Thresholds must be
+// ordered from best quality to worst, i.e. by strictly descending
+// MinValue.
 type Threshold struct {
 	MinValue float64
-	MaxValue float64
 	Quality  Quality
 }
 
 // Rater provides signal rating functionality.
 type Rater struct {
-	rsrpThresholds []Threshold
-	rsrqThresholds []Threshold
-	rssiThresholds []Threshold
-	sinrThresholds []Threshold
+	thresholds map[Metric][]Threshold
 }
 
 // Option configures a Rater with custom settings.
 type Option func(*Rater)
 
+// WithThresholds sets custom thresholds for a metric. The metric does
+// not have to be one of the predefined constants, so custom metrics
+// can be rated too.
+func WithThresholds(metric Metric, thresholds []Threshold) Option {
+	return func(r *Rater) {
+		r.thresholds[metric] = thresholds
+	}
+}
+
 // WithRSRPThresholds sets custom RSRP thresholds.
 func WithRSRPThresholds(thresholds []Threshold) Option {
-	return func(r *Rater) {
-		r.rsrpThresholds = thresholds
-	}
+	return WithThresholds(MetricRSRP, thresholds)
 }
 
 // WithRSRQThresholds sets custom RSRQ thresholds.
 func WithRSRQThresholds(thresholds []Threshold) Option {
-	return func(r *Rater) {
-		r.rsrqThresholds = thresholds
-	}
+	return WithThresholds(MetricRSRQ, thresholds)
 }
 
 // WithRSSIThresholds sets custom RSSI thresholds.
 func WithRSSIThresholds(thresholds []Threshold) Option {
-	return func(r *Rater) {
-		r.rssiThresholds = thresholds
-	}
+	return WithThresholds(MetricRSSI, thresholds)
 }
 
 // WithSINRThresholds sets custom SINR thresholds.
 func WithSINRThresholds(thresholds []Threshold) Option {
-	return func(r *Rater) {
-		r.sinrThresholds = thresholds
-	}
+	return WithThresholds(MetricSINR, thresholds)
 }
 
 // NewRater creates a Rater with standard industry thresholds.
 func NewRater() *Rater {
 	return &Rater{
-		rsrpThresholds: defaultRSRPThresholds(),
-		rsrqThresholds: defaultRSRQThresholds(),
-		rssiThresholds: defaultRSSIThresholds(),
-		sinrThresholds: defaultSINRThresholds(),
+		thresholds: map[Metric][]Threshold{
+			MetricRSRP: defaultRSRPThresholds(),
+			MetricRSRQ: defaultRSRQThresholds(),
+			MetricRSSI: defaultRSSIThresholds(),
+			MetricSINR: defaultSINRThresholds(),
+		},
 	}
 }
 
 // NewRaterWithThresholds creates a Rater with custom thresholds.
-// Returns an error if any threshold slice is empty.
+// Returns an error if any threshold slice is empty or not sorted by
+// strictly descending MinValue.
 func NewRaterWithThresholds(opts ...Option) (*Rater, error) {
 	rater := NewRater()
 	for _, opt := range opts {
 		opt(rater)
 	}
 
-	if err := validateThresholds(rater.rsrpThresholds, "RSRP"); err != nil {
-		return nil, err
-	}
-
-	if err := validateThresholds(rater.rsrqThresholds, "RSRQ"); err != nil {
-		return nil, err
-	}
-
-	if err := validateThresholds(rater.rssiThresholds, "RSSI"); err != nil {
-		return nil, err
-	}
-
-	if err := validateThresholds(rater.sinrThresholds, "SINR"); err != nil {
-		return nil, err
+	for _, metric := range slices.Sorted(maps.Keys(rater.thresholds)) {
+		if err := validateThresholds(rater.thresholds[metric], string(metric)); err != nil {
+			return nil, err
+		}
 	}
 
 	return rater, nil
@@ -190,124 +243,59 @@ func validateThresholds(thresholds []Threshold, metricName string) error {
 		return fmt.Errorf("%s: %w", metricName, ErrEmptyThresholds)
 	}
 
-	return nil
-}
-
-// RateRSRP rates an RSRP signal value.
-func (r *Rater) RateRSRP(rsrp int) Rating {
-	return Rating{
-		Quality: rateValue(float64(rsrp), r.rsrpThresholds),
-		Value:   rsrp,
-		Metric:  MetricRSRP,
-	}
-}
-
-// RateRSRQ rates an RSRQ signal value.
-func (r *Rater) RateRSRQ(rsrq int) Rating {
-	return Rating{
-		Quality: rateValue(float64(rsrq), r.rsrqThresholds),
-		Value:   rsrq,
-		Metric:  MetricRSRQ,
-	}
-}
-
-// RateRSSI rates an RSSI signal value.
-func (r *Rater) RateRSSI(rssi int) Rating {
-	return Rating{
-		Quality: rateValue(float64(rssi), r.rssiThresholds),
-		Value:   rssi,
-		Metric:  MetricRSSI,
-	}
-}
-
-// RateSINR rates a SINR signal value.
-func (r *Rater) RateSINR(sinr int) Rating {
-	return Rating{
-		Quality: rateValue(float64(sinr), r.sinrThresholds),
-		Value:   sinr,
-		Metric:  MetricSINR,
-	}
-}
-
-// Format returns a formatted string using the default format.
-// The default format is "%m: %v %u (%q %s)". See FormatWith for
-// details on available format verbs.
-func (r *Rater) Format(rating Rating) string {
-	return r.FormatWith("%m: %v %u (%q %s)", rating)
-}
-
-// FormatWith returns a formatted string for the rating using a custom format.
-// Supported verbs:
-//
-//	%m - metric (e.g., RSRP, RSRQ, RSSI, SINR)
-//	%v - value (numeric signal value)
-//	%u - unit (e.g., dBm, dB)
-//	%q - quality (e.g., Excellent, Good, Fair, Poor, No Signal)
-//	%s - stars (visual representation like ★★★★★)
-//	%% - literal percent sign
-func (*Rater) FormatWith(format string, rating Rating) string {
-	var builder strings.Builder
-	builder.Grow(len(format) * formatGrowthFactor)
-
-	for idx := 0; idx < len(format); idx++ {
-		if format[idx] == '%' && idx+1 < len(format) {
-			appendVerb(&builder, format[idx+1], rating)
-
-			if format[idx+1] != '%' {
-				idx++
-			}
-		} else {
-			builder.WriteByte(format[idx])
+	for i := 1; i < len(thresholds); i++ {
+		if thresholds[i].MinValue >= thresholds[i-1].MinValue {
+			return fmt.Errorf("%s: %w", metricName, ErrUnsortedThresholds)
 		}
 	}
 
-	return builder.String()
+	return nil
 }
 
-func appendVerb(builder *strings.Builder, verb byte, rating Rating) {
-	switch verb {
-	case 'm':
-		builder.WriteString(rating.Metric.String())
-	case 'v':
-		builder.WriteString(strconv.Itoa(rating.Value))
-	case 'u':
-		builder.WriteString(rating.Metric.Unit())
-	case 'q':
-		builder.WriteString(rating.Quality.String())
-	case 's':
-		builder.WriteString(rating.Quality.Stars())
-	case '%':
-		builder.WriteByte('%')
-	default:
-		builder.WriteByte('%')
-		builder.WriteByte(verb)
+// Rate rates a signal value for the given metric. Metrics without
+// configured thresholds rate as QualityNone.
+func (r *Rater) Rate(metric Metric, value float64) Rating {
+	return Rating{
+		Quality: rateValue(value, r.thresholds[metric]),
+		Value:   value,
+		Metric:  metric,
 	}
 }
 
-// rateValue determines the quality rating for a given value based on thresholds.
-// Thresholds are expected to be ordered from highest quality (best) to lowest.
-//
-// Behavior:
-//   - If value falls within a threshold range [MinValue, MaxValue), returns that threshold's Quality
-//   - If value >= thresholds[0].MaxValue (above highest threshold), returns thresholds[0].Quality
-//   - If value falls in gaps between thresholds or below all thresholds, returns the
-//     last threshold's Quality (typically the worst quality)
+// RateRSRP rates an RSRP signal value.
+func (r *Rater) RateRSRP(rsrp float64) Rating {
+	return r.Rate(MetricRSRP, rsrp)
+}
+
+// RateRSRQ rates an RSRQ signal value.
+func (r *Rater) RateRSRQ(rsrq float64) Rating {
+	return r.Rate(MetricRSRQ, rsrq)
+}
+
+// RateRSSI rates an RSSI signal value.
+func (r *Rater) RateRSSI(rssi float64) Rating {
+	return r.Rate(MetricRSSI, rssi)
+}
+
+// RateSINR rates a SINR signal value.
+func (r *Rater) RateSINR(sinr float64) Rating {
+	return r.Rate(MetricSINR, sinr)
+}
+
+// rateValue determines the quality rating for a given value based on
+// thresholds, which must be ordered by strictly descending MinValue.
+// The first threshold whose MinValue the value reaches wins; values
+// below every threshold get the last (worst) threshold's Quality.
 func rateValue(value float64, thresholds []Threshold) Quality {
 	if len(thresholds) == 0 {
 		return QualityNone
 	}
 
 	for _, t := range thresholds {
-		if value >= t.MinValue && value < t.MaxValue {
+		if value >= t.MinValue {
 			return t.Quality
 		}
 	}
 
-	if value >= thresholds[0].MaxValue {
-		return thresholds[0].Quality
-	}
-
 	return thresholds[len(thresholds)-1].Quality
 }
-
-const formatGrowthFactor = 2

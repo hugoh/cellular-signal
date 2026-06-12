@@ -34,9 +34,19 @@ func TestValidateThresholdsNilReturnsError(t *testing.T) {
 	}
 }
 
+func TestValidateThresholdsUnsortedReturnsError(t *testing.T) {
+	err := validateThresholds([]Threshold{
+		{MinValue: -100, Quality: QualityPoor},
+		{MinValue: -50, Quality: QualityExcellent},
+	}, "RSRP")
+	if !errors.Is(err, ErrUnsortedThresholds) {
+		t.Errorf("validateThresholds error should wrap ErrUnsortedThresholds, got: %v", err)
+	}
+}
+
 func TestValidateThresholdsNonEmpty(t *testing.T) {
 	err := validateThresholds([]Threshold{
-		{MinValue: -100, MaxValue: -50, Quality: QualityGood},
+		{MinValue: -100, Quality: QualityGood},
 	}, "RSRP")
 	if err != nil {
 		t.Errorf("validateThresholds with non-empty slice should not return error: %v", err)

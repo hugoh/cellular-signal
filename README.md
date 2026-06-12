@@ -1,9 +1,9 @@
 # cellular-signal
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/hugoh/cellular-signal.svg)](https://pkg.go.dev/github.com/hugoh/cellular-signal)
+[![Go Reference](https://pkg.go.dev/badge/github.com/hugoh/cellular-signal/v2.svg)](https://pkg.go.dev/github.com/hugoh/cellular-signal/v2)
 [![CI](https://github.com/hugoh/cellular-signal/actions/workflows/ci.yml/badge.svg)](https://github.com/hugoh/cellular-signal/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/github/hugoh/cellular-signal/graph/badge.svg?token=UMZMODZ5PV)](https://codecov.io/github/hugoh/cellular-signal)
-[![Go Report Card](https://goreportcard.com/badge/github.com/hugoh/cellular-signal)](https://goreportcard.com/report/github.com/hugoh/cellular-signal)
+[![Go Report Card](https://goreportcard.com/badge/github.com/hugoh/cellular-signal/v2)](https://goreportcard.com/report/github.com/hugoh/cellular-signal/v2)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fhugoh%2Fcellular-signal.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fhugoh%2Fcellular-signal?ref=badge_shield)
 
 Go library for rating cellular signal quality (LTE/4G/5G) based on industry standards.
@@ -19,7 +19,7 @@ Go library for rating cellular signal quality (LTE/4G/5G) based on industry stan
 ## Installation
 
 ```bash
-go get github.com/hugoh/cellular-signal
+go get github.com/hugoh/cellular-signal/v2
 ```
 
 ## Quick Start
@@ -29,9 +29,8 @@ package main
 
 import (
     "fmt"
-    "log"
 
-    "github.com/hugoh/cellular-signal"
+    signal "github.com/hugoh/cellular-signal/v2"
 )
 
 func main() {
@@ -39,13 +38,13 @@ func main() {
 
     // Rate individual metrics
     rsrpRating := rater.RateRSRP(-92)
-    fmt.Println(rater.Format(rsrpRating))
+    fmt.Println(rsrpRating)
     // Output: RSRP: -92 dBm (Good ★★★★☆)
 
     // Access rating details
     fmt.Printf("Quality: %s\n", rsrpRating.Quality.String())
     fmt.Printf("Metric: %s\n", rsrpRating.Metric)
-    fmt.Printf("Value: %d %s\n", rsrpRating.Value, rsrpRating.Metric.Unit())
+    fmt.Printf("Value: %v %s\n", rsrpRating.Value, rsrpRating.Metric.Unit())
 }
 ```
 
@@ -57,11 +56,12 @@ func main() {
 // Default rater with industry-standard thresholds
 rater := signal.NewRater()
 
-// Custom thresholds
+// Custom thresholds: each entry is the lower bound of a quality level,
+// ordered from best quality to worst (strictly descending MinValue).
 customThresholds := []signal.Threshold{
-    {MinValue: -80, MaxValue: 0, Quality: signal.QualityExcellent},
-    {MinValue: -100, MaxValue: -80, Quality: signal.QualityGood},
-    {MinValue: -200, MaxValue: -100, Quality: signal.QualityPoor},
+    {MinValue: -80, Quality: signal.QualityExcellent},
+    {MinValue: -100, Quality: signal.QualityGood},
+    {MinValue: -200, Quality: signal.QualityPoor},
 }
 rater, err := signal.NewRaterWithThresholds(
     signal.WithRSRPThresholds(customThresholds),
@@ -108,11 +108,11 @@ quality.Stars()   // Star representation (★★★★★, ★★★★☆, etc.
 
 ```go
 rating := rater.RateRSRP(-92)
-formatted := rater.Format(rating)
+formatted := rating.String() // Rating implements fmt.Stringer
 // Output: "RSRP: -92 dBm (Good ★★★★☆)"
 
-// Custom format with FormatWith
-custom := rater.FormatWith("%m=%v%u %s", rating)
+// Custom format
+custom := rating.Format("%m=%v%u %s")
 // Output: "RSRP=-92dBm ★★★★☆"
 ```
 
@@ -139,12 +139,15 @@ This library uses industry-standard thresholds from:
 
 ### Default Thresholds
 
-| Metric         | Excellent | Good        | Fair         | Poor   |
-| -------------- | --------- | ----------- | ------------ | ------ |
-| **RSRP** (dBm) | ≥ -89     | -90 to -104 | -105 to -114 | ≤ -115 |
-| **RSRQ** (dB)  | ≥ -9      | -10 to -14  | -15 to -19   | ≤ -20  |
-| **RSSI** (dBm) | ≥ -65     | -65 to -75  | -75 to -85   | ≤ -85  |
-| **SINR** (dB)  | ≥ 13      | 6 to 13     | 0 to 6       | < 0    |
+Each level applies from its bound up to (but not including) the next
+better level's bound.
+
+| Metric         | Excellent | Good   | Fair   | Poor   | No Signal |
+| -------------- | --------- | ------ | ------ | ------ | --------- |
+| **RSRP** (dBm) | ≥ -89     | ≥ -104 | ≥ -114 | ≥ -124 | < -124    |
+| **RSRQ** (dB)  | ≥ -9      | ≥ -14  | ≥ -19  | < -19  | —         |
+| **RSSI** (dBm) | ≥ -65     | ≥ -75  | ≥ -85  | < -85  | —         |
+| **SINR** (dB)  | ≥ 13      | ≥ 6    | ≥ 0    | < 0    | —         |
 
 ## Development
 
@@ -167,7 +170,7 @@ mise run covercheck
 
 ## Documentation
 
-See [pkg.go.dev](https://pkg.go.dev/github.com/hugoh/cellular-signal) for full API documentation.
+See [pkg.go.dev](https://pkg.go.dev/github.com/hugoh/cellular-signal/v2) for full API documentation.
 
 ## License
 

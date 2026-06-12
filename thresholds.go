@@ -11,11 +11,11 @@ package signal
 // Typical ranges: -44 dBm (excellent) to -140 dBm (no signal).
 func defaultRSRPThresholds() []Threshold {
 	return []Threshold{
-		{MinValue: -89, MaxValue: 0, Quality: QualityExcellent},
-		{MinValue: -104, MaxValue: -89, Quality: QualityGood},
-		{MinValue: -114, MaxValue: -104, Quality: QualityFair},
-		{MinValue: -124, MaxValue: -114, Quality: QualityPoor},
-		{MinValue: -200, MaxValue: -124, Quality: QualityNone},
+		{MinValue: -89, Quality: QualityExcellent},
+		{MinValue: -104, Quality: QualityGood},
+		{MinValue: -114, Quality: QualityFair},
+		{MinValue: -124, Quality: QualityPoor},
+		{MinValue: -200, Quality: QualityNone},
 	}
 }
 
@@ -29,10 +29,10 @@ func defaultRSRPThresholds() []Threshold {
 // Typical ranges: -3 dB (excellent) to -20 dB (poor).
 func defaultRSRQThresholds() []Threshold {
 	return []Threshold{
-		{MinValue: -9, MaxValue: 20, Quality: QualityExcellent},
-		{MinValue: -14, MaxValue: -9, Quality: QualityGood},
-		{MinValue: -19, MaxValue: -14, Quality: QualityFair},
-		{MinValue: -50, MaxValue: -19, Quality: QualityPoor},
+		{MinValue: -9, Quality: QualityExcellent},
+		{MinValue: -14, Quality: QualityGood},
+		{MinValue: -19, Quality: QualityFair},
+		{MinValue: -50, Quality: QualityPoor},
 	}
 }
 
@@ -45,10 +45,10 @@ func defaultRSRQThresholds() []Threshold {
 // Typical ranges: -50 dBm (excellent) to -110 dBm (poor).
 func defaultRSSIThresholds() []Threshold {
 	return []Threshold{
-		{MinValue: -65, MaxValue: 0, Quality: QualityExcellent},
-		{MinValue: -75, MaxValue: -65, Quality: QualityGood},
-		{MinValue: -85, MaxValue: -75, Quality: QualityFair},
-		{MinValue: -120, MaxValue: -85, Quality: QualityPoor},
+		{MinValue: -65, Quality: QualityExcellent},
+		{MinValue: -75, Quality: QualityGood},
+		{MinValue: -85, Quality: QualityFair},
+		{MinValue: -120, Quality: QualityPoor},
 	}
 }
 
@@ -62,9 +62,9 @@ func defaultRSSIThresholds() []Threshold {
 // the signal is weaker than the noise floor.
 func defaultSINRThresholds() []Threshold {
 	return []Threshold{
-		{MinValue: 13, MaxValue: 100, Quality: QualityExcellent},
-		{MinValue: 6, MaxValue: 13, Quality: QualityGood},
-		{MinValue: 0, MaxValue: 6, Quality: QualityFair},
-		{MinValue: -100, MaxValue: 0, Quality: QualityPoor},
+		{MinValue: 13, Quality: QualityExcellent},
+		{MinValue: 6, Quality: QualityGood},
+		{MinValue: 0, Quality: QualityFair},
+		{MinValue: -100, Quality: QualityPoor},
 	}
 }
