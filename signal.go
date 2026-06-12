@@ -12,6 +12,10 @@ import (
 // ErrEmptyThresholds is returned when threshold slices are empty.
 var ErrEmptyThresholds = errors.New("thresholds must not be empty")
 
+// ErrUnsortedThresholds is returned when thresholds are not sorted by
+// strictly descending MinValue.
+var ErrUnsortedThresholds = errors.New("thresholds must be sorted by strictly descending MinValue")
+
 // Quality represents a signal quality rating level.
 type Quality int
 
@@ -102,10 +106,13 @@ type Rating struct {
 	Metric  Metric
 }
 
-// Threshold defines a quality boundary for a signal metric.
+// Threshold defines the lower bound of a quality level for a signal
+// metric: values greater than or equal to MinValue (and below the
+// next-better threshold's MinValue) get Quality. Thresholds must be
+// ordered from best quality to worst, i.e. by strictly descending
+// MinValue.
 type Threshold struct {
 	MinValue float64
-	MaxValue float64
 	Quality  Quality
 }
 
@@ -188,6 +195,12 @@ func NewRaterWithThresholds(opts ...Option) (*Rater, error) {
 func validateThresholds(thresholds []Threshold, metricName string) error {
 	if len(thresholds) == 0 {
 		return fmt.Errorf("%s: %w", metricName, ErrEmptyThresholds)
+	}
+
+	for i := 1; i < len(thresholds); i++ {
+		if thresholds[i].MinValue >= thresholds[i-1].MinValue {
+			return fmt.Errorf("%s: %w", metricName, ErrUnsortedThresholds)
+		}
 	}
 
 	return nil
@@ -281,27 +294,19 @@ func appendVerb(builder *strings.Builder, verb byte, rating Rating) {
 	}
 }
 
-// rateValue determines the quality rating for a given value based on thresholds.
-// Thresholds are expected to be ordered from highest quality (best) to lowest.
-//
-// Behavior:
-//   - If value falls within a threshold range [MinValue, MaxValue), returns that threshold's Quality
-//   - If value >= thresholds[0].MaxValue (above highest threshold), returns thresholds[0].Quality
-//   - If value falls in gaps between thresholds or below all thresholds, returns the
-//     last threshold's Quality (typically the worst quality)
+// rateValue determines the quality rating for a given value based on
+// thresholds, which must be ordered by strictly descending MinValue.
+// The first threshold whose MinValue the value reaches wins; values
+// below every threshold get the last (worst) threshold's Quality.
 func rateValue(value float64, thresholds []Threshold) Quality {
 	if len(thresholds) == 0 {
 		return QualityNone
 	}
 
 	for _, t := range thresholds {
-		if value >= t.MinValue && value < t.MaxValue {
+		if value >= t.MinValue {
 			return t.Quality
 		}
-	}
-
-	if value >= thresholds[0].MaxValue {
-		return thresholds[0].Quality
 	}
 
 	return thresholds[len(thresholds)-1].Quality

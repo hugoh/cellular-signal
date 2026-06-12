@@ -57,11 +57,12 @@ func main() {
 // Default rater with industry-standard thresholds
 rater := signal.NewRater()
 
-// Custom thresholds
+// Custom thresholds: each entry is the lower bound of a quality level,
+// ordered from best quality to worst (strictly descending MinValue).
 customThresholds := []signal.Threshold{
-    {MinValue: -80, MaxValue: 0, Quality: signal.QualityExcellent},
-    {MinValue: -100, MaxValue: -80, Quality: signal.QualityGood},
-    {MinValue: -200, MaxValue: -100, Quality: signal.QualityPoor},
+    {MinValue: -80, Quality: signal.QualityExcellent},
+    {MinValue: -100, Quality: signal.QualityGood},
+    {MinValue: -200, Quality: signal.QualityPoor},
 }
 rater, err := signal.NewRaterWithThresholds(
     signal.WithRSRPThresholds(customThresholds),

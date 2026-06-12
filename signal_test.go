@@ -281,9 +281,9 @@ func TestFormat(t *testing.T) {
 
 func TestNewRaterWithThresholds(t *testing.T) {
 	customRSRP := []signal.Threshold{
-		{MinValue: -80, MaxValue: 0, Quality: signal.QualityExcellent},
-		{MinValue: -100, MaxValue: -80, Quality: signal.QualityGood},
-		{MinValue: -200, MaxValue: -100, Quality: signal.QualityPoor},
+		{MinValue: -80, Quality: signal.QualityExcellent},
+		{MinValue: -100, Quality: signal.QualityGood},
+		{MinValue: -200, Quality: signal.QualityPoor},
 	}
 
 	rater, err := signal.NewRaterWithThresholds(signal.WithRSRPThresholds(customRSRP))
@@ -303,9 +303,9 @@ func TestNewRaterWithThresholds(t *testing.T) {
 
 func TestWithRSRQThresholds(t *testing.T) {
 	customRSRQ := []signal.Threshold{
-		{MinValue: -5, MaxValue: 20, Quality: signal.QualityExcellent},
-		{MinValue: -15, MaxValue: -5, Quality: signal.QualityGood},
-		{MinValue: -50, MaxValue: -15, Quality: signal.QualityPoor},
+		{MinValue: -5, Quality: signal.QualityExcellent},
+		{MinValue: -15, Quality: signal.QualityGood},
+		{MinValue: -50, Quality: signal.QualityPoor},
 	}
 
 	rater, err := signal.NewRaterWithThresholds(signal.WithRSRQThresholds(customRSRQ))
@@ -325,9 +325,9 @@ func TestWithRSRQThresholds(t *testing.T) {
 
 func TestWithRSSIThresholds(t *testing.T) {
 	customRSSI := []signal.Threshold{
-		{MinValue: -60, MaxValue: 0, Quality: signal.QualityExcellent},
-		{MinValue: -80, MaxValue: -60, Quality: signal.QualityGood},
-		{MinValue: -120, MaxValue: -80, Quality: signal.QualityPoor},
+		{MinValue: -60, Quality: signal.QualityExcellent},
+		{MinValue: -80, Quality: signal.QualityGood},
+		{MinValue: -120, Quality: signal.QualityPoor},
 	}
 
 	rater, err := signal.NewRaterWithThresholds(signal.WithRSSIThresholds(customRSSI))
@@ -347,9 +347,9 @@ func TestWithRSSIThresholds(t *testing.T) {
 
 func TestWithSINRThresholds(t *testing.T) {
 	customSINR := []signal.Threshold{
-		{MinValue: 15, MaxValue: 100, Quality: signal.QualityExcellent},
-		{MinValue: 5, MaxValue: 15, Quality: signal.QualityGood},
-		{MinValue: -100, MaxValue: 5, Quality: signal.QualityPoor},
+		{MinValue: 15, Quality: signal.QualityExcellent},
+		{MinValue: 5, Quality: signal.QualityGood},
+		{MinValue: -100, Quality: signal.QualityPoor},
 	}
 
 	rater, err := signal.NewRaterWithThresholds(signal.WithSINRThresholds(customSINR))
@@ -404,49 +404,59 @@ func TestRateValueEdgeCases(t *testing.T) {
 	}
 }
 
-func TestRateValueWithGapThresholds(t *testing.T) {
-	// Create thresholds with a gap to test the fallback logic
-	gapThresholds := []signal.Threshold{
-		{MinValue: -50, MaxValue: -40, Quality: signal.QualityExcellent},
-		{MinValue: -70, MaxValue: -60, Quality: signal.QualityGood},
-		{MinValue: -100, MaxValue: -90, Quality: signal.QualityPoor},
+func TestRateValueSparseThresholds(t *testing.T) {
+	sparseThresholds := []signal.Threshold{
+		{MinValue: -50, Quality: signal.QualityExcellent},
+		{MinValue: -70, Quality: signal.QualityGood},
+		{MinValue: -100, Quality: signal.QualityPoor},
 	}
 
-	rater, err := signal.NewRaterWithThresholds(signal.WithRSRPThresholds(gapThresholds))
+	rater, err := signal.NewRaterWithThresholds(signal.WithRSRPThresholds(sparseThresholds))
 	if err != nil {
 		t.Fatalf("NewRaterWithThresholds failed: %v", err)
 	}
 
-	// Test value above all MaxValues
-	// This triggers: if value >= thresholds[0].MaxValue
-	rating := rater.RateRSRP(-35)
-	if rating.Quality != signal.QualityExcellent {
-		t.Errorf(
-			"RateRSRP(-35) with gap thresholds = %v, want %v",
-			rating.Quality,
-			signal.QualityExcellent,
-		)
+	tests := []struct {
+		name     string
+		rsrp     int
+		expected signal.Quality
+	}{
+		{"above all thresholds", -35, signal.QualityExcellent},
+		{"between excellent and good", -55, signal.QualityGood},
+		{"below all thresholds", -110, signal.QualityPoor},
 	}
 
-	// Test value in the gap between Excellent and Good (-50 to -60)
-	// Falls through loop, below MaxValue, returns last threshold
-	rating2 := rater.RateRSRP(-55)
-	if rating2.Quality != signal.QualityPoor {
-		t.Errorf(
-			"RateRSRP(-55) with gap thresholds = %v, want %v",
-			rating2.Quality,
-			signal.QualityPoor,
-		)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rating := rater.RateRSRP(tt.rsrp)
+			if rating.Quality != tt.expected {
+				t.Errorf("RateRSRP(%d) = %v, want %v", tt.rsrp, rating.Quality, tt.expected)
+			}
+		})
+	}
+}
+
+func TestNewRaterWithThresholdsUnsortedReturnsError(t *testing.T) {
+	unsorted := []signal.Threshold{
+		{MinValue: -100, Quality: signal.QualityPoor},
+		{MinValue: -50, Quality: signal.QualityExcellent},
 	}
 
-	// Test value below all thresholds
-	rating3 := rater.RateRSRP(-110)
-	if rating3.Quality != signal.QualityPoor {
-		t.Errorf(
-			"RateRSRP(-110) with gap thresholds = %v, want %v",
-			rating3.Quality,
-			signal.QualityPoor,
-		)
+	_, err := signal.NewRaterWithThresholds(signal.WithRSRPThresholds(unsorted))
+	if err == nil {
+		t.Error("NewRaterWithThresholds with unsorted thresholds should return error")
+	}
+}
+
+func TestNewRaterWithThresholdsDuplicateMinReturnsError(t *testing.T) {
+	duplicate := []signal.Threshold{
+		{MinValue: -50, Quality: signal.QualityExcellent},
+		{MinValue: -50, Quality: signal.QualityGood},
+	}
+
+	_, err := signal.NewRaterWithThresholds(signal.WithSINRThresholds(duplicate))
+	if err == nil {
+		t.Error("NewRaterWithThresholds with duplicate MinValue should return error")
 	}
 }
 
@@ -550,7 +560,7 @@ func TestNewRaterWithThresholdsNilSINR(t *testing.T) {
 
 func TestNewRaterWithThresholdsSingleThreshold(t *testing.T) {
 	singleRSRP := []signal.Threshold{
-		{MinValue: -100, MaxValue: -50, Quality: signal.QualityGood},
+		{MinValue: -100, Quality: signal.QualityGood},
 	}
 
 	rater, err := signal.NewRaterWithThresholds(signal.WithRSRPThresholds(singleRSRP))
