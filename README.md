@@ -29,9 +29,8 @@ package main
 
 import (
     "fmt"
-    "log"
 
-    "github.com/hugoh/cellular-signal"
+    signal "github.com/hugoh/cellular-signal"
 )
 
 func main() {
@@ -140,12 +139,15 @@ This library uses industry-standard thresholds from:
 
 ### Default Thresholds
 
-| Metric         | Excellent | Good        | Fair         | Poor   |
-| -------------- | --------- | ----------- | ------------ | ------ |
-| **RSRP** (dBm) | ≥ -89     | -90 to -104 | -105 to -114 | ≤ -115 |
-| **RSRQ** (dB)  | ≥ -9      | -10 to -14  | -15 to -19   | ≤ -20  |
-| **RSSI** (dBm) | ≥ -65     | -65 to -75  | -75 to -85   | ≤ -85  |
-| **SINR** (dB)  | ≥ 13      | 6 to 13     | 0 to 6       | < 0    |
+Each level applies from its bound up to (but not including) the next
+better level's bound.
+
+| Metric         | Excellent | Good   | Fair   | Poor   | No Signal |
+| -------------- | --------- | ------ | ------ | ------ | --------- |
+| **RSRP** (dBm) | ≥ -89     | ≥ -104 | ≥ -114 | ≥ -124 | < -124    |
+| **RSRQ** (dB)  | ≥ -9      | ≥ -14  | ≥ -19  | < -19  | —         |
+| **RSSI** (dBm) | ≥ -65     | ≥ -75  | ≥ -85  | < -85  | —         |
+| **SINR** (dB)  | ≥ 13      | ≥ 6    | ≥ 0    | < 0    | —         |
 
 ## Development
 
