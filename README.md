@@ -45,7 +45,7 @@ func main() {
     // Access rating details
     fmt.Printf("Quality: %s\n", rsrpRating.Quality.String())
     fmt.Printf("Metric: %s\n", rsrpRating.Metric)
-    fmt.Printf("Value: %d %s\n", rsrpRating.Value, rsrpRating.Metric.Unit())
+    fmt.Printf("Value: %v %s\n", rsrpRating.Value, rsrpRating.Metric.Unit())
 }
 ```
 

@@ -76,7 +76,7 @@ func TestRateRSRP(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		rsrp     int
+		rsrp     float64
 		expected signal.Quality
 	}{
 		{"excellent signal", -80, signal.QualityExcellent},
@@ -92,22 +92,24 @@ func TestRateRSRP(t *testing.T) {
 		{"poor signal lower", -124, signal.QualityPoor},
 		{"no signal", -130, signal.QualityNone},
 		{"very poor signal", -140, signal.QualityNone},
+		{"fractional below boundary", -89.5, signal.QualityGood},
+		{"fractional above boundary", -88.5, signal.QualityExcellent},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rating := rater.RateRSRP(tt.rsrp)
 			if rating.Quality != tt.expected {
-				t.Errorf("RateRSRP(%d) = %v, want %v", tt.rsrp, rating.Quality, tt.expected)
+				t.Errorf("RateRSRP(%v) = %v, want %v", tt.rsrp, rating.Quality, tt.expected)
 			}
 
 			if rating.Value != tt.rsrp {
-				t.Errorf("RateRSRP(%d).Value = %v, want %v", tt.rsrp, rating.Value, tt.rsrp)
+				t.Errorf("RateRSRP(%v).Value = %v, want %v", tt.rsrp, rating.Value, tt.rsrp)
 			}
 
 			if rating.Metric != signal.MetricRSRP {
 				t.Errorf(
-					"RateRSRP(%d).Metric = %v, want %v",
+					"RateRSRP(%v).Metric = %v, want %v",
 					tt.rsrp,
 					rating.Metric,
 					signal.MetricRSRP,
@@ -122,7 +124,7 @@ func TestRateRSRQ(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		rsrq     int
+		rsrq     float64
 		expected signal.Quality
 	}{
 		{"excellent signal", -5, signal.QualityExcellent},
@@ -141,16 +143,16 @@ func TestRateRSRQ(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			rating := rater.RateRSRQ(tt.rsrq)
 			if rating.Quality != tt.expected {
-				t.Errorf("RateRSRQ(%d) = %v, want %v", tt.rsrq, rating.Quality, tt.expected)
+				t.Errorf("RateRSRQ(%v) = %v, want %v", tt.rsrq, rating.Quality, tt.expected)
 			}
 
 			if rating.Value != tt.rsrq {
-				t.Errorf("RateRSRQ(%d).Value = %v, want %v", tt.rsrq, rating.Value, tt.rsrq)
+				t.Errorf("RateRSRQ(%v).Value = %v, want %v", tt.rsrq, rating.Value, tt.rsrq)
 			}
 
 			if rating.Metric != signal.MetricRSRQ {
 				t.Errorf(
-					"RateRSRQ(%d).Metric = %v, want %v",
+					"RateRSRQ(%v).Metric = %v, want %v",
 					tt.rsrq,
 					rating.Metric,
 					signal.MetricRSRQ,
@@ -165,7 +167,7 @@ func TestRateRSSI(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		rssi     int
+		rssi     float64
 		expected signal.Quality
 	}{
 		{"excellent signal", -50, signal.QualityExcellent},
@@ -183,16 +185,16 @@ func TestRateRSSI(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			rating := rater.RateRSSI(tt.rssi)
 			if rating.Quality != tt.expected {
-				t.Errorf("RateRSSI(%d) = %v, want %v", tt.rssi, rating.Quality, tt.expected)
+				t.Errorf("RateRSSI(%v) = %v, want %v", tt.rssi, rating.Quality, tt.expected)
 			}
 
 			if rating.Value != tt.rssi {
-				t.Errorf("RateRSSI(%d).Value = %v, want %v", tt.rssi, rating.Value, tt.rssi)
+				t.Errorf("RateRSSI(%v).Value = %v, want %v", tt.rssi, rating.Value, tt.rssi)
 			}
 
 			if rating.Metric != signal.MetricRSSI {
 				t.Errorf(
-					"RateRSSI(%d).Metric = %v, want %v",
+					"RateRSSI(%v).Metric = %v, want %v",
 					tt.rssi,
 					rating.Metric,
 					signal.MetricRSSI,
@@ -207,7 +209,7 @@ func TestRateSINR(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		sinr     int
+		sinr     float64
 		expected signal.Quality
 	}{
 		{"excellent signal", 20, signal.QualityExcellent},
@@ -226,16 +228,16 @@ func TestRateSINR(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			rating := rater.RateSINR(tt.sinr)
 			if rating.Quality != tt.expected {
-				t.Errorf("RateSINR(%d) = %v, want %v", tt.sinr, rating.Quality, tt.expected)
+				t.Errorf("RateSINR(%v) = %v, want %v", tt.sinr, rating.Quality, tt.expected)
 			}
 
 			if rating.Value != tt.sinr {
-				t.Errorf("RateSINR(%d).Value = %v, want %v", tt.sinr, rating.Value, tt.sinr)
+				t.Errorf("RateSINR(%v).Value = %v, want %v", tt.sinr, rating.Value, tt.sinr)
 			}
 
 			if rating.Metric != signal.MetricSINR {
 				t.Errorf(
-					"RateSINR(%d).Metric = %v, want %v",
+					"RateSINR(%v).Metric = %v, want %v",
 					tt.sinr,
 					rating.Metric,
 					signal.MetricSINR,
@@ -267,6 +269,11 @@ func TestFormat(t *testing.T) {
 			name:     "RSRQ Poor",
 			rating:   rater.RateRSRQ(-22),
 			expected: "RSRQ: -22 dB (Poor ★★☆☆☆)",
+		},
+		{
+			name:     "SINR fractional value",
+			rating:   rater.RateSINR(13.5),
+			expected: "SINR: 13.5 dB (Excellent ★★★★★)",
 		},
 	}
 
@@ -418,7 +425,7 @@ func TestRateValueSparseThresholds(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		rsrp     int
+		rsrp     float64
 		expected signal.Quality
 	}{
 		{"above all thresholds", -35, signal.QualityExcellent},
@@ -430,7 +437,7 @@ func TestRateValueSparseThresholds(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			rating := rater.RateRSRP(tt.rsrp)
 			if rating.Quality != tt.expected {
-				t.Errorf("RateRSRP(%d) = %v, want %v", tt.rsrp, rating.Quality, tt.expected)
+				t.Errorf("RateRSRP(%v) = %v, want %v", tt.rsrp, rating.Quality, tt.expected)
 			}
 		})
 	}

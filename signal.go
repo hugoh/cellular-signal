@@ -104,7 +104,7 @@ func (m Metric) Unit() string {
 // Rating contains a signal quality rating with full context.
 type Rating struct {
 	Quality Quality
-	Value   int
+	Value   float64
 	Metric  Metric
 }
 
@@ -201,31 +201,31 @@ func validateThresholds(thresholds []Threshold, metricName string) error {
 
 // Rate rates a signal value for the given metric. Metrics without
 // configured thresholds rate as QualityNone.
-func (r *Rater) Rate(metric Metric, value int) Rating {
+func (r *Rater) Rate(metric Metric, value float64) Rating {
 	return Rating{
-		Quality: rateValue(float64(value), r.thresholds[metric]),
+		Quality: rateValue(value, r.thresholds[metric]),
 		Value:   value,
 		Metric:  metric,
 	}
 }
 
 // RateRSRP rates an RSRP signal value.
-func (r *Rater) RateRSRP(rsrp int) Rating {
+func (r *Rater) RateRSRP(rsrp float64) Rating {
 	return r.Rate(MetricRSRP, rsrp)
 }
 
 // RateRSRQ rates an RSRQ signal value.
-func (r *Rater) RateRSRQ(rsrq int) Rating {
+func (r *Rater) RateRSRQ(rsrq float64) Rating {
 	return r.Rate(MetricRSRQ, rsrq)
 }
 
 // RateRSSI rates an RSSI signal value.
-func (r *Rater) RateRSSI(rssi int) Rating {
+func (r *Rater) RateRSSI(rssi float64) Rating {
 	return r.Rate(MetricRSSI, rssi)
 }
 
 // RateSINR rates a SINR signal value.
-func (r *Rater) RateSINR(sinr int) Rating {
+func (r *Rater) RateSINR(sinr float64) Rating {
 	return r.Rate(MetricSINR, sinr)
 }
 
@@ -266,7 +266,7 @@ func appendVerb(builder *strings.Builder, verb byte, rating Rating) {
 	case 'm':
 		builder.WriteString(rating.Metric.String())
 	case 'v':
-		builder.WriteString(strconv.Itoa(rating.Value))
+		builder.WriteString(strconv.FormatFloat(rating.Value, 'f', -1, 64))
 	case 'u':
 		builder.WriteString(rating.Metric.Unit())
 	case 'q':
