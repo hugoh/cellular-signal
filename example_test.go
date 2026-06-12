@@ -38,6 +38,7 @@ func ExampleNewRaterWithThresholds() {
 	rater, err := signal.NewRaterWithThresholds(signal.WithRSRPThresholds(thresholds))
 	if err != nil {
 		fmt.Println(err)
+
 		return
 	}
 

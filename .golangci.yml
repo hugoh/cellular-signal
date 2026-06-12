@@ -8,9 +8,10 @@ linters:
     - wsl
   exclusions:
     rules:
-      - path: signal_test.go
+      - path: _test\.go$
         linters:
           - depguard
+          - goconst
           - varnamelen
       - path: thresholds.go
         linters:
