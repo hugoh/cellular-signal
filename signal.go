@@ -5,6 +5,8 @@ package signal
 import (
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -118,75 +120,66 @@ type Threshold struct {
 
 // Rater provides signal rating functionality.
 type Rater struct {
-	rsrpThresholds []Threshold
-	rsrqThresholds []Threshold
-	rssiThresholds []Threshold
-	sinrThresholds []Threshold
+	thresholds map[Metric][]Threshold
 }
 
 // Option configures a Rater with custom settings.
 type Option func(*Rater)
 
+// WithThresholds sets custom thresholds for a metric. The metric does
+// not have to be one of the predefined constants, so custom metrics
+// can be rated too.
+func WithThresholds(metric Metric, thresholds []Threshold) Option {
+	return func(r *Rater) {
+		r.thresholds[metric] = thresholds
+	}
+}
+
 // WithRSRPThresholds sets custom RSRP thresholds.
 func WithRSRPThresholds(thresholds []Threshold) Option {
-	return func(r *Rater) {
-		r.rsrpThresholds = thresholds
-	}
+	return WithThresholds(MetricRSRP, thresholds)
 }
 
 // WithRSRQThresholds sets custom RSRQ thresholds.
 func WithRSRQThresholds(thresholds []Threshold) Option {
-	return func(r *Rater) {
-		r.rsrqThresholds = thresholds
-	}
+	return WithThresholds(MetricRSRQ, thresholds)
 }
 
 // WithRSSIThresholds sets custom RSSI thresholds.
 func WithRSSIThresholds(thresholds []Threshold) Option {
-	return func(r *Rater) {
-		r.rssiThresholds = thresholds
-	}
+	return WithThresholds(MetricRSSI, thresholds)
 }
 
 // WithSINRThresholds sets custom SINR thresholds.
 func WithSINRThresholds(thresholds []Threshold) Option {
-	return func(r *Rater) {
-		r.sinrThresholds = thresholds
-	}
+	return WithThresholds(MetricSINR, thresholds)
 }
 
 // NewRater creates a Rater with standard industry thresholds.
 func NewRater() *Rater {
 	return &Rater{
-		rsrpThresholds: defaultRSRPThresholds(),
-		rsrqThresholds: defaultRSRQThresholds(),
-		rssiThresholds: defaultRSSIThresholds(),
-		sinrThresholds: defaultSINRThresholds(),
+		thresholds: map[Metric][]Threshold{
+			MetricRSRP: defaultRSRPThresholds(),
+			MetricRSRQ: defaultRSRQThresholds(),
+			MetricRSSI: defaultRSSIThresholds(),
+			MetricSINR: defaultSINRThresholds(),
+		},
 	}
 }
 
 // NewRaterWithThresholds creates a Rater with custom thresholds.
-// Returns an error if any threshold slice is empty.
+// Returns an error if any threshold slice is empty or not sorted by
+// strictly descending MinValue.
 func NewRaterWithThresholds(opts ...Option) (*Rater, error) {
 	rater := NewRater()
 	for _, opt := range opts {
 		opt(rater)
 	}
 
-	if err := validateThresholds(rater.rsrpThresholds, "RSRP"); err != nil {
-		return nil, err
-	}
-
-	if err := validateThresholds(rater.rsrqThresholds, "RSRQ"); err != nil {
-		return nil, err
-	}
-
-	if err := validateThresholds(rater.rssiThresholds, "RSSI"); err != nil {
-		return nil, err
-	}
-
-	if err := validateThresholds(rater.sinrThresholds, "SINR"); err != nil {
-		return nil, err
+	for _, metric := range slices.Sorted(maps.Keys(rater.thresholds)) {
+		if err := validateThresholds(rater.thresholds[metric], string(metric)); err != nil {
+			return nil, err
+		}
 	}
 
 	return rater, nil
@@ -206,40 +199,34 @@ func validateThresholds(thresholds []Threshold, metricName string) error {
 	return nil
 }
 
+// Rate rates a signal value for the given metric. Metrics without
+// configured thresholds rate as QualityNone.
+func (r *Rater) Rate(metric Metric, value int) Rating {
+	return Rating{
+		Quality: rateValue(float64(value), r.thresholds[metric]),
+		Value:   value,
+		Metric:  metric,
+	}
+}
+
 // RateRSRP rates an RSRP signal value.
 func (r *Rater) RateRSRP(rsrp int) Rating {
-	return Rating{
-		Quality: rateValue(float64(rsrp), r.rsrpThresholds),
-		Value:   rsrp,
-		Metric:  MetricRSRP,
-	}
+	return r.Rate(MetricRSRP, rsrp)
 }
 
 // RateRSRQ rates an RSRQ signal value.
 func (r *Rater) RateRSRQ(rsrq int) Rating {
-	return Rating{
-		Quality: rateValue(float64(rsrq), r.rsrqThresholds),
-		Value:   rsrq,
-		Metric:  MetricRSRQ,
-	}
+	return r.Rate(MetricRSRQ, rsrq)
 }
 
 // RateRSSI rates an RSSI signal value.
 func (r *Rater) RateRSSI(rssi int) Rating {
-	return Rating{
-		Quality: rateValue(float64(rssi), r.rssiThresholds),
-		Value:   rssi,
-		Metric:  MetricRSSI,
-	}
+	return r.Rate(MetricRSSI, rssi)
 }
 
 // RateSINR rates a SINR signal value.
 func (r *Rater) RateSINR(sinr int) Rating {
-	return Rating{
-		Quality: rateValue(float64(sinr), r.sinrThresholds),
-		Value:   sinr,
-		Metric:  MetricSINR,
-	}
+	return r.Rate(MetricSINR, sinr)
 }
 
 // Format returns a formatted string using the default format.
