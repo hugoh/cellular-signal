@@ -3,7 +3,7 @@ package signal_test
 import (
 	"testing"
 
-	signal "github.com/hugoh/cellular-signal"
+	signal "github.com/hugoh/cellular-signal/v2"
 )
 
 func TestQualityString(t *testing.T) {

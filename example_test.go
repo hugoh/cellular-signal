@@ -3,7 +3,7 @@ package signal_test
 import (
 	"fmt"
 
-	signal "github.com/hugoh/cellular-signal"
+	signal "github.com/hugoh/cellular-signal/v2"
 )
 
 func ExampleRater_RateRSRP() {
