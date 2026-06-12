@@ -39,7 +39,7 @@ func main() {
 
     // Rate individual metrics
     rsrpRating := rater.RateRSRP(-92)
-    fmt.Println(rater.Format(rsrpRating))
+    fmt.Println(rsrpRating)
     // Output: RSRP: -92 dBm (Good ★★★★☆)
 
     // Access rating details
@@ -109,11 +109,11 @@ quality.Stars()   // Star representation (★★★★★, ★★★★☆, etc.
 
 ```go
 rating := rater.RateRSRP(-92)
-formatted := rater.Format(rating)
+formatted := rating.String() // Rating implements fmt.Stringer
 // Output: "RSRP: -92 dBm (Good ★★★★☆)"
 
-// Custom format with FormatWith
-custom := rater.FormatWith("%m=%v%u %s", rating)
+// Custom format
+custom := rating.Format("%m=%v%u %s")
 // Output: "RSRP=-92dBm ★★★★☆"
 ```
 

@@ -84,11 +84,6 @@ const (
 	MetricSINR Metric = "SINR"
 )
 
-// String returns the metric name.
-func (m Metric) String() string {
-	return string(m)
-}
-
 // Unit returns the measurement unit for the metric.
 func (m Metric) Unit() string {
 	switch m {
@@ -106,6 +101,64 @@ type Rating struct {
 	Quality Quality
 	Value   float64
 	Metric  Metric
+}
+
+// defaultFormat is the layout used by Rating.String.
+const defaultFormat = "%m: %v %u (%q %s)"
+
+// formatGrowthFactor sizes the format builder's initial allocation
+// relative to the layout length.
+const formatGrowthFactor = 2
+
+// String implements fmt.Stringer using the default format
+// "%m: %v %u (%q %s)". See Format for details on available verbs.
+func (r Rating) String() string {
+	return r.Format(defaultFormat)
+}
+
+// Format returns a formatted string for the rating using a custom format.
+// Supported verbs:
+//
+//	%m - metric (e.g., RSRP, RSRQ, RSSI, SINR)
+//	%v - value (numeric signal value)
+//	%u - unit (e.g., dBm, dB)
+//	%q - quality (e.g., Excellent, Good, Fair, Poor, No Signal)
+//	%s - stars (visual representation like ★★★★★)
+//	%% - literal percent sign
+func (r Rating) Format(format string) string {
+	var builder strings.Builder
+	builder.Grow(len(format) * formatGrowthFactor)
+
+	for idx := 0; idx < len(format); idx++ {
+		if format[idx] == '%' && idx+1 < len(format) {
+			r.appendVerb(&builder, format[idx+1])
+			idx++
+		} else {
+			builder.WriteByte(format[idx])
+		}
+	}
+
+	return builder.String()
+}
+
+func (r Rating) appendVerb(builder *strings.Builder, verb byte) {
+	switch verb {
+	case 'm':
+		builder.WriteString(string(r.Metric))
+	case 'v':
+		builder.WriteString(strconv.FormatFloat(r.Value, 'f', -1, 64))
+	case 'u':
+		builder.WriteString(r.Metric.Unit())
+	case 'q':
+		builder.WriteString(r.Quality.String())
+	case 's':
+		builder.WriteString(r.Quality.Stars())
+	case '%':
+		builder.WriteByte('%')
+	default:
+		builder.WriteByte('%')
+		builder.WriteByte(verb)
+	}
 }
 
 // Threshold defines the lower bound of a quality level for a signal
@@ -229,58 +282,6 @@ func (r *Rater) RateSINR(sinr float64) Rating {
 	return r.Rate(MetricSINR, sinr)
 }
 
-// Format returns a formatted string using the default format.
-// The default format is "%m: %v %u (%q %s)". See FormatWith for
-// details on available format verbs.
-func (r *Rater) Format(rating Rating) string {
-	return r.FormatWith("%m: %v %u (%q %s)", rating)
-}
-
-// FormatWith returns a formatted string for the rating using a custom format.
-// Supported verbs:
-//
-//	%m - metric (e.g., RSRP, RSRQ, RSSI, SINR)
-//	%v - value (numeric signal value)
-//	%u - unit (e.g., dBm, dB)
-//	%q - quality (e.g., Excellent, Good, Fair, Poor, No Signal)
-//	%s - stars (visual representation like ★★★★★)
-//	%% - literal percent sign
-func (*Rater) FormatWith(format string, rating Rating) string {
-	var builder strings.Builder
-	builder.Grow(len(format) * formatGrowthFactor)
-
-	for idx := 0; idx < len(format); idx++ {
-		if format[idx] == '%' && idx+1 < len(format) {
-			appendVerb(&builder, format[idx+1], rating)
-			idx++
-		} else {
-			builder.WriteByte(format[idx])
-		}
-	}
-
-	return builder.String()
-}
-
-func appendVerb(builder *strings.Builder, verb byte, rating Rating) {
-	switch verb {
-	case 'm':
-		builder.WriteString(rating.Metric.String())
-	case 'v':
-		builder.WriteString(strconv.FormatFloat(rating.Value, 'f', -1, 64))
-	case 'u':
-		builder.WriteString(rating.Metric.Unit())
-	case 'q':
-		builder.WriteString(rating.Quality.String())
-	case 's':
-		builder.WriteString(rating.Quality.Stars())
-	case '%':
-		builder.WriteByte('%')
-	default:
-		builder.WriteByte('%')
-		builder.WriteByte(verb)
-	}
-}
-
 // rateValue determines the quality rating for a given value based on
 // thresholds, which must be ordered by strictly descending MinValue.
 // The first threshold whose MinValue the value reaches wins; values
@@ -298,5 +299,3 @@ func rateValue(value float64, thresholds []Threshold) Quality {
 
 	return thresholds[len(thresholds)-1].Quality
 }
-
-const formatGrowthFactor = 2

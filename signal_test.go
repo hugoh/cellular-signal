@@ -279,8 +279,8 @@ func TestFormat(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := rater.Format(tt.rating); got != tt.expected {
-				t.Errorf("Format() = %v, want %v", got, tt.expected)
+			if got := tt.rating.String(); got != tt.expected {
+				t.Errorf("String() = %v, want %v", got, tt.expected)
 			}
 		})
 	}
@@ -510,8 +510,8 @@ func TestFormatWithUnknownVerb(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := rater.FormatWith(tt.format, rating); got != tt.expected {
-				t.Errorf("FormatWith(%q) = %q, want %q", tt.format, got, tt.expected)
+			if got := rating.Format(tt.format); got != tt.expected {
+				t.Errorf("Format(%q) = %q, want %q", tt.format, got, tt.expected)
 			}
 		})
 	}
