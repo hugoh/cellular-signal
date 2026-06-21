@@ -565,6 +565,31 @@ func TestNewRaterWithThresholdsNilSINR(t *testing.T) {
 	}
 }
 
+func TestWithThresholdsIsolatesCallerSlice(t *testing.T) {
+	thresholds := []signal.Threshold{
+		{MinValue: -80, Quality: signal.QualityExcellent},
+		{MinValue: -100, Quality: signal.QualityGood},
+		{MinValue: -200, Quality: signal.QualityPoor},
+	}
+
+	rater, err := signal.NewRaterWithThresholds(signal.WithRSRPThresholds(thresholds))
+	if err != nil {
+		t.Fatalf("NewRaterWithThresholds failed: %v", err)
+	}
+
+	// Mutate the original slice after rater creation.
+	thresholds[0] = signal.Threshold{MinValue: 0, Quality: signal.QualityPoor}
+
+	rating := rater.RateRSRP(-70)
+	if rating.Quality != signal.QualityExcellent {
+		t.Errorf(
+			"RateRSRP(-70) after mutating source slice = %v, want %v (caller mutation must not affect Rater)",
+			rating.Quality,
+			signal.QualityExcellent,
+		)
+	}
+}
+
 func TestNewRaterWithThresholdsSingleThreshold(t *testing.T) {
 	singleRSRP := []signal.Threshold{
 		{MinValue: -100, Quality: signal.QualityGood},

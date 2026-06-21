@@ -184,7 +184,7 @@ type Option func(*Rater)
 // can be rated too.
 func WithThresholds(metric Metric, thresholds []Threshold) Option {
 	return func(r *Rater) {
-		r.thresholds[metric] = thresholds
+		r.thresholds[metric] = slices.Clone(thresholds)
 	}
 }
 
