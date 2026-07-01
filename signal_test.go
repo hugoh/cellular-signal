@@ -6,6 +6,29 @@ import (
 	signal "github.com/hugoh/cellular-signal/v2"
 )
 
+// customRSRPThresholds returns the shared custom RSRP thresholds used to
+// exercise WithRSRPThresholds across multiple tests.
+func customRSRPThresholds() []signal.Threshold {
+	return []signal.Threshold{
+		{MinValue: -80, Quality: signal.QualityExcellent},
+		{MinValue: -100, Quality: signal.QualityGood},
+		{MinValue: -200, Quality: signal.QualityPoor},
+	}
+}
+
+// newRaterWithCustomRSRP builds a Rater using customRSRPThresholds,
+// failing the test immediately on error.
+func newRaterWithCustomRSRP(t *testing.T) *signal.Rater {
+	t.Helper()
+
+	rater, err := signal.NewRaterWithThresholds(signal.WithRSRPThresholds(customRSRPThresholds()))
+	if err != nil {
+		t.Fatalf("NewRaterWithThresholds failed: %v", err)
+	}
+
+	return rater
+}
+
 func TestQualityString(t *testing.T) {
 	t.Parallel()
 
@@ -321,16 +344,7 @@ func TestFormat(t *testing.T) {
 func TestNewRaterWithThresholds(t *testing.T) {
 	t.Parallel()
 
-	customRSRP := []signal.Threshold{
-		{MinValue: -80, Quality: signal.QualityExcellent},
-		{MinValue: -100, Quality: signal.QualityGood},
-		{MinValue: -200, Quality: signal.QualityPoor},
-	}
-
-	rater, err := signal.NewRaterWithThresholds(signal.WithRSRPThresholds(customRSRP))
-	if err != nil {
-		t.Fatalf("NewRaterWithThresholds failed: %v", err)
-	}
+	rater := newRaterWithCustomRSRP(t)
 
 	rating := rater.RateRSRP(-90)
 	if rating.Quality != signal.QualityGood {
@@ -634,11 +648,7 @@ func TestNewRaterWithThresholdsNilSINR(t *testing.T) {
 func TestWithThresholdsIsolatesCallerSlice(t *testing.T) {
 	t.Parallel()
 
-	thresholds := []signal.Threshold{
-		{MinValue: -80, Quality: signal.QualityExcellent},
-		{MinValue: -100, Quality: signal.QualityGood},
-		{MinValue: -200, Quality: signal.QualityPoor},
-	}
+	thresholds := customRSRPThresholds()
 
 	rater, err := signal.NewRaterWithThresholds(signal.WithRSRPThresholds(thresholds))
 	if err != nil {
@@ -712,17 +722,7 @@ func TestRateUnregisteredMetricReturnsQualityNone(t *testing.T) {
 func TestNewRaterWithThresholdsLeavesOtherMetricsAtDefault(t *testing.T) {
 	t.Parallel()
 
-	customRSRP := []signal.Threshold{
-		{MinValue: -80, Quality: signal.QualityExcellent},
-		{MinValue: -100, Quality: signal.QualityGood},
-		{MinValue: -200, Quality: signal.QualityPoor},
-	}
-
-	rater, err := signal.NewRaterWithThresholds(signal.WithRSRPThresholds(customRSRP))
-	if err != nil {
-		t.Fatalf("NewRaterWithThresholds failed: %v", err)
-	}
-
+	rater := newRaterWithCustomRSRP(t)
 	defaultRater := signal.NewRater()
 
 	for _, tt := range []struct {
