@@ -7,6 +7,8 @@ import (
 )
 
 func TestQualityString(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		quality  signal.Quality
 		expected string
@@ -21,6 +23,8 @@ func TestQualityString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.expected, func(t *testing.T) {
+			t.Parallel()
+
 			if got := tt.quality.String(); got != tt.expected {
 				t.Errorf("Quality.String() = %v, want %v", got, tt.expected)
 			}
@@ -29,6 +33,8 @@ func TestQualityString(t *testing.T) {
 }
 
 func TestQualityStars(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		quality  signal.Quality
 		expected string
@@ -43,6 +49,8 @@ func TestQualityStars(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.quality.String(), func(t *testing.T) {
+			t.Parallel()
+
 			if got := tt.quality.Stars(); got != tt.expected {
 				t.Errorf("Quality.Stars() = %v, want %v", got, tt.expected)
 			}
@@ -51,6 +59,8 @@ func TestQualityStars(t *testing.T) {
 }
 
 func TestMetricUnit(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		metric   signal.Metric
 		expected string
@@ -64,6 +74,8 @@ func TestMetricUnit(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(string(tt.metric), func(t *testing.T) {
+			t.Parallel()
+
 			if got := tt.metric.Unit(); got != tt.expected {
 				t.Errorf("Metric.Unit() = %v, want %v", got, tt.expected)
 			}
@@ -72,6 +84,8 @@ func TestMetricUnit(t *testing.T) {
 }
 
 func TestRateRSRP(t *testing.T) {
+	t.Parallel()
+
 	rater := signal.NewRater()
 
 	tests := []struct {
@@ -98,6 +112,8 @@ func TestRateRSRP(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			rating := rater.RateRSRP(tt.rsrp)
 			if rating.Quality != tt.expected {
 				t.Errorf("RateRSRP(%v) = %v, want %v", tt.rsrp, rating.Quality, tt.expected)
@@ -120,6 +136,8 @@ func TestRateRSRP(t *testing.T) {
 }
 
 func TestRateRSRQ(t *testing.T) {
+	t.Parallel()
+
 	rater := signal.NewRater()
 
 	tests := []struct {
@@ -141,6 +159,8 @@ func TestRateRSRQ(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			rating := rater.RateRSRQ(tt.rsrq)
 			if rating.Quality != tt.expected {
 				t.Errorf("RateRSRQ(%v) = %v, want %v", tt.rsrq, rating.Quality, tt.expected)
@@ -163,6 +183,8 @@ func TestRateRSRQ(t *testing.T) {
 }
 
 func TestRateRSSI(t *testing.T) {
+	t.Parallel()
+
 	rater := signal.NewRater()
 
 	tests := []struct {
@@ -183,6 +205,8 @@ func TestRateRSSI(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			rating := rater.RateRSSI(tt.rssi)
 			if rating.Quality != tt.expected {
 				t.Errorf("RateRSSI(%v) = %v, want %v", tt.rssi, rating.Quality, tt.expected)
@@ -205,6 +229,8 @@ func TestRateRSSI(t *testing.T) {
 }
 
 func TestRateSINR(t *testing.T) {
+	t.Parallel()
+
 	rater := signal.NewRater()
 
 	tests := []struct {
@@ -226,6 +252,8 @@ func TestRateSINR(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			rating := rater.RateSINR(tt.sinr)
 			if rating.Quality != tt.expected {
 				t.Errorf("RateSINR(%v) = %v, want %v", tt.sinr, rating.Quality, tt.expected)
@@ -248,6 +276,8 @@ func TestRateSINR(t *testing.T) {
 }
 
 func TestFormat(t *testing.T) {
+	t.Parallel()
+
 	rater := signal.NewRater()
 
 	tests := []struct {
@@ -279,6 +309,8 @@ func TestFormat(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			if got := tt.rating.String(); got != tt.expected {
 				t.Errorf("String() = %v, want %v", got, tt.expected)
 			}
@@ -287,6 +319,8 @@ func TestFormat(t *testing.T) {
 }
 
 func TestNewRaterWithThresholds(t *testing.T) {
+	t.Parallel()
+
 	customRSRP := []signal.Threshold{
 		{MinValue: -80, Quality: signal.QualityExcellent},
 		{MinValue: -100, Quality: signal.QualityGood},
@@ -309,6 +343,8 @@ func TestNewRaterWithThresholds(t *testing.T) {
 }
 
 func TestWithRSRQThresholds(t *testing.T) {
+	t.Parallel()
+
 	customRSRQ := []signal.Threshold{
 		{MinValue: -5, Quality: signal.QualityExcellent},
 		{MinValue: -15, Quality: signal.QualityGood},
@@ -331,6 +367,8 @@ func TestWithRSRQThresholds(t *testing.T) {
 }
 
 func TestWithRSSIThresholds(t *testing.T) {
+	t.Parallel()
+
 	customRSSI := []signal.Threshold{
 		{MinValue: -60, Quality: signal.QualityExcellent},
 		{MinValue: -80, Quality: signal.QualityGood},
@@ -353,6 +391,8 @@ func TestWithRSSIThresholds(t *testing.T) {
 }
 
 func TestWithSINRThresholds(t *testing.T) {
+	t.Parallel()
+
 	customSINR := []signal.Threshold{
 		{MinValue: 15, Quality: signal.QualityExcellent},
 		{MinValue: 5, Quality: signal.QualityGood},
@@ -375,6 +415,8 @@ func TestWithSINRThresholds(t *testing.T) {
 }
 
 func TestRateValueEdgeCases(t *testing.T) {
+	t.Parallel()
+
 	rater := signal.NewRater()
 
 	// Test value above highest threshold (edge case)
@@ -412,6 +454,8 @@ func TestRateValueEdgeCases(t *testing.T) {
 }
 
 func TestRateValueSparseThresholds(t *testing.T) {
+	t.Parallel()
+
 	sparseThresholds := []signal.Threshold{
 		{MinValue: -50, Quality: signal.QualityExcellent},
 		{MinValue: -70, Quality: signal.QualityGood},
@@ -435,6 +479,8 @@ func TestRateValueSparseThresholds(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			rating := rater.RateRSRP(tt.rsrp)
 			if rating.Quality != tt.expected {
 				t.Errorf("RateRSRP(%v) = %v, want %v", tt.rsrp, rating.Quality, tt.expected)
@@ -444,6 +490,8 @@ func TestRateValueSparseThresholds(t *testing.T) {
 }
 
 func TestNewRaterWithThresholdsUnsortedReturnsError(t *testing.T) {
+	t.Parallel()
+
 	unsorted := []signal.Threshold{
 		{MinValue: -100, Quality: signal.QualityPoor},
 		{MinValue: -50, Quality: signal.QualityExcellent},
@@ -456,6 +504,8 @@ func TestNewRaterWithThresholdsUnsortedReturnsError(t *testing.T) {
 }
 
 func TestNewRaterWithThresholdsDuplicateMinReturnsError(t *testing.T) {
+	t.Parallel()
+
 	duplicate := []signal.Threshold{
 		{MinValue: -50, Quality: signal.QualityExcellent},
 		{MinValue: -50, Quality: signal.QualityGood},
@@ -468,6 +518,8 @@ func TestNewRaterWithThresholdsDuplicateMinReturnsError(t *testing.T) {
 }
 
 func TestFormatWithUnknownVerb(t *testing.T) {
+	t.Parallel()
+
 	rater := signal.NewRater()
 	rating := rater.RateRSRP(-92)
 
@@ -510,6 +562,8 @@ func TestFormatWithUnknownVerb(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			if got := rating.Format(tt.format); got != tt.expected {
 				t.Errorf("Format(%q) = %q, want %q", tt.format, got, tt.expected)
 			}
@@ -518,6 +572,8 @@ func TestFormatWithUnknownVerb(t *testing.T) {
 }
 
 func TestNewRaterWithThresholdsEmptyReturnsError(t *testing.T) {
+	t.Parallel()
+
 	var emptyRSRP []signal.Threshold
 
 	_, err := signal.NewRaterWithThresholds(signal.WithRSRPThresholds(emptyRSRP))
@@ -527,6 +583,8 @@ func TestNewRaterWithThresholdsEmptyReturnsError(t *testing.T) {
 }
 
 func TestNewRaterWithThresholdsNilReturnsError(t *testing.T) {
+	t.Parallel()
+
 	_, err := signal.NewRaterWithThresholds(signal.WithRSRQThresholds(nil))
 	if err == nil {
 		t.Error("NewRaterWithThresholds with nil thresholds should return error")
@@ -534,6 +592,8 @@ func TestNewRaterWithThresholdsNilReturnsError(t *testing.T) {
 }
 
 func TestNewRaterWithThresholdsEmptyRSSI(t *testing.T) {
+	t.Parallel()
+
 	var emptyRSSI []signal.Threshold
 
 	_, err := signal.NewRaterWithThresholds(signal.WithRSSIThresholds(emptyRSSI))
@@ -543,6 +603,8 @@ func TestNewRaterWithThresholdsEmptyRSSI(t *testing.T) {
 }
 
 func TestNewRaterWithThresholdsNilRSSI(t *testing.T) {
+	t.Parallel()
+
 	_, err := signal.NewRaterWithThresholds(signal.WithRSSIThresholds(nil))
 	if err == nil {
 		t.Error("NewRaterWithThresholds with nil RSSI thresholds should return error")
@@ -550,6 +612,8 @@ func TestNewRaterWithThresholdsNilRSSI(t *testing.T) {
 }
 
 func TestNewRaterWithThresholdsEmptySINR(t *testing.T) {
+	t.Parallel()
+
 	var emptySINR []signal.Threshold
 
 	_, err := signal.NewRaterWithThresholds(signal.WithSINRThresholds(emptySINR))
@@ -559,6 +623,8 @@ func TestNewRaterWithThresholdsEmptySINR(t *testing.T) {
 }
 
 func TestNewRaterWithThresholdsNilSINR(t *testing.T) {
+	t.Parallel()
+
 	_, err := signal.NewRaterWithThresholds(signal.WithSINRThresholds(nil))
 	if err == nil {
 		t.Error("NewRaterWithThresholds with nil SINR thresholds should return error")
@@ -566,6 +632,8 @@ func TestNewRaterWithThresholdsNilSINR(t *testing.T) {
 }
 
 func TestWithThresholdsIsolatesCallerSlice(t *testing.T) {
+	t.Parallel()
+
 	thresholds := []signal.Threshold{
 		{MinValue: -80, Quality: signal.QualityExcellent},
 		{MinValue: -100, Quality: signal.QualityGood},
@@ -591,6 +659,8 @@ func TestWithThresholdsIsolatesCallerSlice(t *testing.T) {
 }
 
 func TestNewRaterWithThresholdsSingleThreshold(t *testing.T) {
+	t.Parallel()
+
 	singleRSRP := []signal.Threshold{
 		{MinValue: -100, Quality: signal.QualityGood},
 	}
@@ -625,5 +695,81 @@ func TestNewRaterWithThresholdsSingleThreshold(t *testing.T) {
 			rating3.Quality,
 			signal.QualityGood,
 		)
+	}
+}
+
+func TestRateUnregisteredMetricReturnsQualityNone(t *testing.T) {
+	t.Parallel()
+
+	rater := signal.NewRater()
+
+	rating := rater.Rate(signal.Metric("UNKNOWN"), -80)
+	if rating.Quality != signal.QualityNone {
+		t.Errorf("Rate with unregistered metric = %v, want %v", rating.Quality, signal.QualityNone)
+	}
+}
+
+func TestNewRaterWithThresholdsLeavesOtherMetricsAtDefault(t *testing.T) {
+	t.Parallel()
+
+	customRSRP := []signal.Threshold{
+		{MinValue: -80, Quality: signal.QualityExcellent},
+		{MinValue: -100, Quality: signal.QualityGood},
+		{MinValue: -200, Quality: signal.QualityPoor},
+	}
+
+	rater, err := signal.NewRaterWithThresholds(signal.WithRSRPThresholds(customRSRP))
+	if err != nil {
+		t.Fatalf("NewRaterWithThresholds failed: %v", err)
+	}
+
+	defaultRater := signal.NewRater()
+
+	for _, tt := range []struct {
+		name   string
+		metric signal.Metric
+		value  float64
+	}{
+		{"RSRQ", signal.MetricRSRQ, -11},
+		{"RSSI", signal.MetricRSSI, -72},
+		{"SINR", signal.MetricSINR, 8},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := rater.Rate(tt.metric, tt.value).Quality
+			want := defaultRater.Rate(tt.metric, tt.value).Quality
+
+			if got != want {
+				t.Errorf(
+					"Rate(%v, %v) after customizing RSRP = %v, want unchanged default %v",
+					tt.metric,
+					tt.value,
+					got,
+					want,
+				)
+			}
+		})
+	}
+}
+
+func TestWithThresholdsCustomMetric(t *testing.T) {
+	t.Parallel()
+
+	customMetric := signal.Metric("BATTERY")
+	thresholds := []signal.Threshold{
+		{MinValue: 80, Quality: signal.QualityExcellent},
+		{MinValue: 40, Quality: signal.QualityGood},
+		{MinValue: 0, Quality: signal.QualityPoor},
+	}
+
+	rater, err := signal.NewRaterWithThresholds(signal.WithThresholds(customMetric, thresholds))
+	if err != nil {
+		t.Fatalf("NewRaterWithThresholds failed: %v", err)
+	}
+
+	rating := rater.Rate(customMetric, 50)
+	if rating.Quality != signal.QualityGood {
+		t.Errorf("Rate(%v, 50) = %v, want %v", customMetric, rating.Quality, signal.QualityGood)
 	}
 }
