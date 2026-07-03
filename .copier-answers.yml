@@ -30,4 +30,3 @@ project_name: cellular-signal
 test_int_cmd: test ! -d internal || gotestsum -- -race -tags=integration ./internal/...
 testcoverage_excludes: []
 testcoverage_overrides: []
-
