@@ -106,10 +106,6 @@ type Rating struct {
 // defaultFormat is the layout used by Rating.String.
 const defaultFormat = "%m: %v %u (%q %s)"
 
-// formatGrowthFactor sizes the format builder's initial allocation
-// relative to the layout length.
-const formatGrowthFactor = 2
-
 // String implements fmt.Stringer using the default format
 // "%m: %v %u (%q %s)". See Format for details on available verbs.
 func (r Rating) String() string {
@@ -126,39 +122,16 @@ func (r Rating) String() string {
 //	%s - stars (visual representation like ★★★★★)
 //	%% - literal percent sign
 func (r Rating) Format(format string) string {
-	var builder strings.Builder
-	builder.Grow(len(format) * formatGrowthFactor)
+	replacer := strings.NewReplacer(
+		"%m", string(r.Metric),
+		"%v", strconv.FormatFloat(r.Value, 'f', -1, 64),
+		"%u", r.Metric.Unit(),
+		"%q", r.Quality.String(),
+		"%s", r.Quality.Stars(),
+		"%%", "%",
+	)
 
-	for idx := 0; idx < len(format); idx++ {
-		if format[idx] == '%' && idx+1 < len(format) {
-			r.appendVerb(&builder, format[idx+1])
-			idx++
-		} else {
-			builder.WriteByte(format[idx])
-		}
-	}
-
-	return builder.String()
-}
-
-func (r Rating) appendVerb(builder *strings.Builder, verb byte) {
-	switch verb {
-	case 'm':
-		builder.WriteString(string(r.Metric))
-	case 'v':
-		builder.WriteString(strconv.FormatFloat(r.Value, 'f', -1, 64))
-	case 'u':
-		builder.WriteString(r.Metric.Unit())
-	case 'q':
-		builder.WriteString(r.Quality.String())
-	case 's':
-		builder.WriteString(r.Quality.Stars())
-	case '%':
-		builder.WriteByte('%')
-	default:
-		builder.WriteByte('%')
-		builder.WriteByte(verb)
-	}
+	return replacer.Replace(format)
 }
 
 // Threshold defines the lower bound of a quality level for a signal
