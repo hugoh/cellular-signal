@@ -264,10 +264,9 @@ func rateValue(value float64, thresholds []Threshold) Quality {
 		return QualityNone
 	}
 
-	for _, t := range thresholds {
-		if value >= t.MinValue {
-			return t.Quality
-		}
+	i := slices.IndexFunc(thresholds, func(t Threshold) bool { return value >= t.MinValue })
+	if i >= 0 && i < len(thresholds) {
+		return thresholds[i].Quality
 	}
 
 	return thresholds[len(thresholds)-1].Quality
