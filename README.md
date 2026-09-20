@@ -1,7 +1,6 @@
 # cellular-signal
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/hugoh/cellular-signal/v2.svg)](https://pkg.go.dev/github.com/hugoh/cellular-signal/v2)
-[![CI](https://github.com/hugoh/cellular-signal/actions/workflows/ci.yml/badge.svg)](https://github.com/hugoh/cellular-signal/actions/workflows/ci.yml)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fhugoh%2Fcellular-signal.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fhugoh%2Fcellular-signal?ref=badge_shield)
 
 Go library for rating cellular signal quality (LTE/4G/5G) based on industry standards.
